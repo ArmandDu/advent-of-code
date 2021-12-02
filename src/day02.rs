@@ -1,6 +1,4 @@
 use itertools::Itertools;
-use std::iter::Map;
-use std::str::Lines;
 
 #[derive(Debug)]
 enum Instruction {
@@ -13,7 +11,6 @@ fn get_content() -> Vec<Instruction> {
         .lines()
         .filter_map(|line| {
             let pair: Vec<&str> = line.split_whitespace().collect();
-
             let value: i32 = pair[1].parse().unwrap();
 
             return match pair[0] {
@@ -39,6 +36,20 @@ pub fn part1() {
     }
 
     println!("day 2 part 1: {}", x * y);
+    assert_eq!(part1_v2(), x * y);
+}
+
+pub fn part1_v2() -> i32 {
+    let content = get_content();
+
+    let (x, y) = content
+        .iter()
+        .fold((0, 0), |(x, y), instruction| match instruction {
+            Instruction::Forward(xi) => (x + xi, y),
+            Instruction::Aim(yi) => (x, y + yi),
+        });
+
+    return x * y;
 }
 
 pub fn part2() {
@@ -58,4 +69,18 @@ pub fn part2() {
     }
 
     println!("day 2 part 2: {}", x * y);
+    assert_eq!(part2_v2(), x * y);
+}
+
+pub fn part2_v2() -> i32 {
+    let content = get_content();
+
+    let (x, y, _) = content
+        .iter()
+        .fold((0, 0, 0), |(x, y, aim), instruction| match instruction {
+            Instruction::Forward(xi) => (x + xi, y + (aim * xi), aim),
+            Instruction::Aim(yi) => (x, y, aim + yi),
+        });
+
+    return x * y;
 }
