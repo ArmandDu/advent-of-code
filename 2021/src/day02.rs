@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 #[derive(Debug)]
 enum Instruction {
     Forward(i32),
