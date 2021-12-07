@@ -1,8 +1,80 @@
 pub fn part1() {
-    println!("day 3 part 1: {}", v1::part1());
+    println!(
+        "day 3 part 1: v0({}) v1({}) v2({})",
+        v0::part1(),
+        v1::part1(),
+        v2::part1()
+    );
 }
 pub fn part2() {
-    println!("day 3 part 2: {}", v1::part2());
+    println!(
+        "day 3 part 2: v0({}) v1({}) v2({})",
+        v0::part2(),
+        v1::part2(),
+        v2::part2()
+    );
+}
+
+mod v2 {
+    use crate::day03::v1;
+    use itertools::Itertools;
+
+    fn get_input() -> (usize, Vec<usize>) {
+        let input = include_str!("../data/day03_input");
+        let length = input.find("\n").unwrap();
+
+        let pool = input
+            .lines()
+            .filter_map(|line| usize::from_str_radix(&line, 2).ok())
+            .collect();
+
+        (length, pool)
+    }
+
+    fn get_max_byte_at(shift: usize, pool: &[usize]) -> bool {
+        pool.iter().map(|value| (value >> shift) & 1).sum::<usize>() * 2 >= pool.len()
+    }
+
+    pub fn part1() -> usize {
+        let (length, content) = get_input();
+
+        let gamma_rate: usize = (0..length)
+            .map(|shift| (get_max_byte_at(shift, &content) as usize) << shift)
+            .sum();
+        let epsilon_rate = 2_usize.pow(length as u32) - 1 - gamma_rate;
+
+        assert_eq!(gamma_rate * epsilon_rate, v1::part1());
+        gamma_rate * epsilon_rate
+    }
+
+    pub fn part2() -> usize {
+        let (length, content) = get_input();
+
+        let (oxygen, co2): (Vec<_>, Vec<_>) = (0..length).rev().fold(
+            (content.to_vec(), content),
+            |(mut oxygen, mut co2), shift| {
+                if oxygen.len() > 1 {
+                    let bit_oxygen = get_max_byte_at(shift, &oxygen) as usize;
+
+                    oxygen.retain(|num| (num >> shift) & 1 == bit_oxygen);
+                }
+
+                if co2.len() > 1 {
+                    let bit_co2 = !get_max_byte_at(shift, &co2) as usize;
+
+                    co2.retain(|num| (num >> shift) & 1 == bit_co2);
+                }
+
+                (oxygen, co2)
+            },
+        );
+
+        let oxygen = oxygen[0];
+        let co2 = co2[0];
+
+        assert_eq!(v1::part2(), oxygen * co2);
+        oxygen * co2
+    }
 }
 
 mod v1 {
