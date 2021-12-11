@@ -1,30 +1,33 @@
 use itertools::Itertools;
+use year2021::Solution;
 
-fn get_content() -> Vec<i32> {
-    include_str!("../data/day01_star1_input")
-        .lines()
-        .filter_map(|l| l.parse::<i32>().ok())
-        .collect()
-}
+pub struct Day01;
 
-pub fn part1() {
-    let content = get_content();
-    let count = content
-        .iter()
-        .tuple_windows()
-        .filter(|(a, b)| a < b)
-        .count();
+impl Solution<usize, usize> for Day01 {
+    const DAY: u32 = 1;
+    const YEAR: u32 = 2021;
+    const TITLE: &'static str = "Sonar Sweep";
+    type Input = Vec<i32>;
 
-    println!("day 1 part 1: {}", count);
-}
+    fn part1(input: &Self::Input) -> Option<usize> {
+        Some(input.iter().tuple_windows().filter(|(a, b)| a < b).count())
+    }
 
-pub fn part2() {
-    let content = get_content();
-    let count = content
-        .iter()
-        .tuple_windows()
-        .filter(|(a, _, _, d)| a < d)
-        .count();
+    fn part2(input: &Self::Input) -> Option<usize> {
+        Some(
+            input
+                .iter()
+                .tuple_windows()
+                .filter(|(a, _, _, d)| a < d)
+                .count(),
+        )
+    }
 
-    println!("day 1 part 2: {}", count);
+    fn parse(input: &str) -> Result<Self::Input, &str> {
+        Ok(input
+            .trim()
+            .lines()
+            .map(|l| l.parse::<i32>().unwrap())
+            .collect())
+    }
 }

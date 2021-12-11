@@ -1,46 +1,32 @@
-pub fn part1() {
-    println!("day 7 part 1: v0({})", v0::part1());
-}
-pub fn part2() {
-    println!("day 7 part 2: v0({})", v0::part2());
-}
+use itertools::Itertools;
+use std::collections::HashMap;
+use year2021::Solution;
 
-mod v0 {
-    use itertools::Itertools;
-    use std::collections::HashMap;
+pub struct Day07;
 
-    fn get_input() -> HashMap<i32, i32> {
-        include_str!("../data/day07_input")
-            .trim()
-            .split(",")
-            .map(|input| input.parse::<i32>().unwrap())
-            .fold(HashMap::new(), |mut pool, pos| {
-                *pool.entry(pos).or_insert(0) += 1;
-                pool
-            })
-    }
+impl Solution<usize, usize> for Day07 {
+    const DAY: u32 = 7;
+    const YEAR: u32 = 2021;
+    const TITLE: &'static str = "The Treachery of Whales";
+    type Input = Vec<i32>;
 
-    pub fn part1() -> usize {
-        let sorted_distance = include_str!("../data/day07_input")
-            .trim()
-            .split(",")
-            .map(|input| input.parse::<i32>().unwrap())
-            .sorted()
-            .collect::<Vec<_>>();
+    fn part1(input: &Self::Input) -> Option<usize> {
+        let median_index = (input.len() + 1) / 2;
+        let median_pos = input.get(median_index).unwrap();
 
-        let median_index = (sorted_distance.len() + 1) / 2;
-        let median_pos = sorted_distance.get(median_index).unwrap();
-
-        let fuel_cost = sorted_distance
+        let fuel_cost = input
             .iter()
             .map(|pos| (pos - median_pos).abs())
             .sum::<i32>();
 
-        fuel_cost as usize
+        Some(fuel_cost as usize)
     }
 
-    pub fn part2() -> usize {
-        let crabs: HashMap<_, _> = get_input();
+    fn part2(input: &Self::Input) -> Option<usize> {
+        let crabs: HashMap<_, _> = input.into_iter().fold(HashMap::new(), |mut pool, &pos| {
+            *pool.entry(pos).or_insert(0) += 1;
+            pool
+        });
 
         let (_pos, fuel_cost) = (*crabs.keys().min().unwrap()..*crabs.keys().max().unwrap())
             .map(|target_pos| {
@@ -59,6 +45,15 @@ mod v0 {
             .min_by(|a, b| a.1.cmp(&b.1))
             .unwrap();
 
-        fuel_cost as usize
+        Some(fuel_cost as usize)
+    }
+
+    fn parse(input: &str) -> Result<Self::Input, &str> {
+        Ok(input
+            .trim()
+            .split(",")
+            .map(|input| input.parse::<i32>().unwrap())
+            .sorted()
+            .collect::<Vec<_>>())
     }
 }
