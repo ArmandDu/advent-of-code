@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 pub fn part1() {
     println!("day 6 part 1: v0({}) v1({})", v0::part1(), v1::part1());
 }
@@ -9,8 +7,6 @@ pub fn part2() {
 
 mod v1 {
     use crate::day06::v0;
-    use itertools::Itertools;
-    use std::collections::HashMap;
 
     fn get_input() -> [usize; 9] {
         include_str!("../data/day06_input")

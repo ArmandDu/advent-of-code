@@ -17,7 +17,6 @@ pub fn part2() {
 
 mod v2 {
     use crate::day03::v1;
-    use itertools::Itertools;
 
     fn get_input() -> (usize, Vec<usize>) {
         let input = include_str!("../data/day03_input");
