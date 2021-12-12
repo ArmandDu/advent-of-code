@@ -6,6 +6,7 @@ mod day03;
 mod day06;
 mod day07;
 mod day08;
+mod day09;
 
 fn main() {
     println!("---- TESTING ---\n");
@@ -57,6 +58,12 @@ fn main() {
         Some(26),
         Some(61229));
 
+    day09::Day09::test(
+        "2199943210\n3987894921\n9856789892\n8767896789\n9899965678",
+        Some(15),
+        Some(1134),
+    );
+
     println!("\n---- SOLUTIONS ---\n");
 
     day01::Day01::run(include_str!("../data/day01_star1_input"));
@@ -73,5 +80,8 @@ fn main() {
     day06::Day06::run(include_str!("../data/day06_input"));
 
     day07::Day07::run(include_str!("../data/day07_input"));
+
     day08::Day08::run(include_str!("../data/day08_input"));
+
+    day09::Day09::run(include_str!("../data/day09_input"));
 }
