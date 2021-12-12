@@ -61,5 +61,10 @@ pub trait Solution<P1: Display, P2: Display> {
         if let Some(r2) = p2 {
             println!("\tPart 2: '{}'\t- in {:.4}ms", r2, s2.as_secs_f32() * 1000.);
         }
+
+        println!(
+            "\tTotal Time:\t\t{:.4}ms",
+            (parse_time.as_secs_f32() + s1.as_secs_f32() + s2.as_secs_f32()) * 1000.
+        );
     }
 }
