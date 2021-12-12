@@ -7,6 +7,7 @@ mod day06;
 mod day07;
 mod day08;
 mod day09;
+mod day10;
 
 fn main() {
     println!("---- TESTING ---\n");
@@ -64,6 +65,12 @@ fn main() {
         Some(1134),
     );
 
+    day10::Day10::test(
+        "[({(<(())[]>[[{[]{<()<>>\n[(()[<>])]({[<{<<[]>>(\n{([(<{}[<>[]}>{[]{[(<()>\n(((({<>}<{<{<>}{[]{[]{}\n[[<[([]))<([[{}[[()]]]\n[{[{({}]{}}([{[{{{}}([]\n{<[[]]>}<{[{[{[]{()[[[]\n[<(<(<(<{}))><([]([]()\n<{([([[(<>()){}]>(<<{{\n<{([{{}}[<[[[<>{}]]]>[]]",
+        Some(26397),
+        Some(288957),
+    );
+
     println!("\n---- SOLUTIONS ---\n");
 
     day01::Day01::run(include_str!("../data/day01_star1_input"));
@@ -84,4 +91,6 @@ fn main() {
     day08::Day08::run(include_str!("../data/day08_input"));
 
     day09::Day09::run(include_str!("../data/day09_input"));
+
+    day10::Day10::run(include_str!("../data/day10_input"));
 }
