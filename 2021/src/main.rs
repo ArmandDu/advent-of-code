@@ -23,6 +23,8 @@ fn main() {
         Some(150),
         Some(900),
     );
+    day06::Day06V0::test("3,4,3,1,2", Some(5934), Some(26984457539));
+    day06::Day06::test("3,4,3,1,2", Some(5934), Some(26984457539));
     day07::Day07::test("16,1,2,0,4,2,7,1,2,14", Some(37), Some(168));
 
     println!("\n---- SOLUTIONS ---\n");
@@ -30,13 +32,13 @@ fn main() {
     day03::part1();
     day03::part2();
 
-    day06::part1();
-    day06::part2();
-
     day01::Day01::run(include_str!("../data/day01_star1_input"));
 
     day02::Day02::run(include_str!("../data/day02_part1_input"));
     day02::Day02V2::run(include_str!("../data/day02_part1_input"));
+
+    day06::Day06V0::run(include_str!("../data/day06_input"));
+    day06::Day06::run(include_str!("../data/day06_input"));
 
     day07::Day07::run(include_str!("../data/day07_input"));
 }

@@ -1,23 +1,34 @@
-pub fn part1() {
-    println!("day 6 part 1: v0({}) v1({})", v0::part1(), v1::part1());
-}
-pub fn part2() {
-    println!("day 6 part 2: v0({}) v1({})", v0::part2(), v1::part2());
-}
+use year2021::Solution;
 
-mod v1 {
-    use crate::day06::v0;
+pub struct Day06;
 
-    fn get_input() -> [usize; 9] {
-        include_str!("../data/day06_input")
+impl Solution<usize, usize> for Day06 {
+    const DAY: u32 = 6;
+    const YEAR: u32 = 2021;
+    const TITLE: &'static str = "Lanternfish";
+    type Input = [usize; 9];
+
+    fn part1(input: &Self::Input) -> Option<usize> {
+        Some(Self::making_babies(&input[..], 80))
+    }
+
+    fn part2(input: &Self::Input) -> Option<usize> {
+        Some(Self::making_babies(&input[..], 256))
+    }
+
+    fn parse(input: &str) -> Result<Self::Input, &str> {
+        Ok(input
+            .trim()
             .split(",")
             .filter_map(|i| i.parse::<usize>().ok())
             .fold([0; 9], |mut map, i| {
                 map[i] += 1;
                 map
-            })
+            }))
     }
+}
 
+impl Day06 {
     fn making_babies(pool: &[usize], days: usize) -> usize {
         (0..days)
             .fold(pool.to_vec(), |mut pool, _day| {
@@ -31,24 +42,37 @@ mod v1 {
             .iter()
             .sum()
     }
+}
 
-    pub fn part1() -> usize {
-        let input = get_input();
-        let population = making_babies(&input, 80);
+pub struct Day06V0;
 
-        assert_eq!(v0::part1(), population);
-        population
+impl Solution<usize, usize> for Day06V0 {
+    const DAY: u32 = 6;
+    const YEAR: u32 = 2021;
+    const TITLE: &'static str = "Lanternfish (naive version)";
+    type Input = Vec<usize>;
+
+    fn part1(input: &Self::Input) -> Option<usize> {
+        Some(Self::get_population(&input, 80).len())
     }
 
-    pub fn part2() -> usize {
-        let input = get_input();
-        let population = making_babies(&input, 256);
+    fn part2(_input: &Self::Input) -> Option<usize> {
+        None
 
-        population
+        // This would take Ages :D
+        // Some(Self::get_population(&input, 256).len())
+    }
+
+    fn parse(input: &str) -> Result<Self::Input, &str> {
+        Ok(input
+            .trim()
+            .split(",")
+            .map(|i| i.parse::<usize>().unwrap())
+            .collect())
     }
 }
 
-mod v0 {
+impl Day06V0 {
     fn get_population(initial: &[usize], target: usize) -> Vec<usize> {
         (0..target).fold(initial.into(), |pool, _day| {
             let mut newborns: Vec<usize> = vec![];
@@ -68,31 +92,5 @@ mod v0 {
             pool.append(&mut newborns);
             pool
         })
-    }
-
-    pub fn part1() -> usize {
-        let initial: Vec<usize> = include_str!("../data/day06_input")
-            .split(",")
-            .filter_map(|i| i.parse::<usize>().ok())
-            .collect();
-
-        let target = 80usize;
-        let pool = get_population(&initial, target);
-
-        pool.len()
-    }
-
-    //this would  be a bad idea :D
-    pub fn part2() -> usize {
-        // let initial: Vec<usize> = include_str!("../data/day06_input")
-        //     .split(",")
-        //     .filter_map(|i| i.parse::<usize>().ok())
-        //     .collect();
-
-        // simulation would take to long. need to fix
-        // let target = 256usize;
-        // let pool = get_population(&initial, target);
-
-        0
     }
 }
