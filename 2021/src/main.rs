@@ -5,6 +5,7 @@ mod day02;
 mod day03;
 mod day06;
 mod day07;
+mod day08;
 
 fn main() {
     println!("---- TESTING ---\n");
@@ -51,6 +52,11 @@ fn main() {
 
     day07::Day07::test("16,1,2,0,4,2,7,1,2,14", Some(37), Some(168));
 
+    day08::Day08::test(
+        "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe\nedbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc\nfgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg\nfbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb\naecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea\nfgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb\ndbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe\nbdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef\negadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb\ngcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce", 
+        Some(26),
+        Some(61229));
+
     println!("\n---- SOLUTIONS ---\n");
 
     day01::Day01::run(include_str!("../data/day01_star1_input"));
@@ -67,4 +73,5 @@ fn main() {
     day06::Day06::run(include_str!("../data/day06_input"));
 
     day07::Day07::run(include_str!("../data/day07_input"));
+    day08::Day08::run(include_str!("../data/day08_input"));
 }
