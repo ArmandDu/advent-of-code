@@ -1,3 +1,4 @@
+use crate::utils::neighbors;
 use itertools::Itertools;
 use year2021::Solution;
 
@@ -59,27 +60,13 @@ impl Solution<usize, usize> for Day09 {
 }
 
 impl Day09 {
-    fn neighbors(width: usize, height: usize, x: usize, y: usize) -> Vec<(usize, usize)> {
-        [
-            (y > 0).then(|| (x, y - 1)),
-            (x > 0).then(|| (x - 1, y)),
-            (x + 1 < width).then(|| (x + 1, y)),
-            (y + 1 < height).then(|| (x, y + 1)),
-        ]
-        .iter()
-        .filter_map(|&c| c)
-        .collect()
-    }
-
     fn add_neighbors_to_basin(
         basin: &mut Vec<(usize, usize)>,
         h_map: &Vec<Vec<usize>>,
         x: usize,
         y: usize,
     ) {
-        let neighbors = Self::neighbors(h_map[0].len(), h_map.len(), x, y);
-
-        neighbors
+        neighbors(h_map[0].len(), h_map.len(), x, y)
             .into_iter()
             .filter(|&(xi, yi)| h_map[yi][xi] < 9)
             .for_each(|(xi, yi)| {
@@ -99,9 +86,11 @@ impl Day09 {
             .cartesian_product(0..width)
             .fold(vec![], |mut low_points, (y, x)| {
                 let current = h_map[y][x];
-                let neighbors = Self::neighbors(width, height, x, y);
 
-                if neighbors.iter().all(|&(xi, yi)| h_map[yi][xi] > current) {
+                if neighbors(h_map[0].len(), h_map.len(), x, y)
+                    .into_iter()
+                    .all(|(xi, yi)| h_map[yi][xi] > current)
+                {
                     low_points.push((x, y, current))
                 }
                 low_points

@@ -1,5 +1,7 @@
 use year2021::Solution;
 
+mod utils;
+
 mod day01;
 mod day02;
 mod day03;
@@ -10,6 +12,7 @@ mod day09;
 mod day10;
 mod day13;
 mod day14;
+mod day15;
 
 fn main() {
     println!("---- TESTING ---\n");
@@ -77,6 +80,8 @@ fn main() {
 
     day14::Day14::test("NNCB\n\nCH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C", Some(1588), Some(2188189693529));
 
+    day15::Day15::test("1163751742\n1381373672\n2136511328\n3694931569\n7463417111\n1319128137\n1359912421\n3125421639\n1293138521\n2311944581", Some(40), Some(315));
+
     println!("\n---- SOLUTIONS ---\n");
 
     day01::Day01::run(include_str!("../data/day01_star1_input"));
@@ -103,4 +108,6 @@ fn main() {
     day13::Day13::run(include_str!("../data/day13_input"));
 
     day14::Day14::run(include_str!("../data/day14_input"));
+
+    day15::Day15::run(include_str!("../data/day15_input"));
 }
