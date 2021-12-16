@@ -80,7 +80,7 @@ impl Day14 {
         });
 
         // then, we have our pairs but we need to count how many time each letter appear.
-        // because we are dealing with windows, a list of NN, NC, CB, we need should count only 2 N, 1 C and 1 B (in the window, N appears 3 times, C 2 times)
+        // because we are dealing with windows, a list of NN, NC, CB, we should count only 2 N, 1 C and 1 B (in the window, N appears 3 times, C 2 times)
         // for that, we can count only the first letter of each pair, which gives N, N, C.
         // We would be missing the last letter so we have to add it manually later...
         let mut letter_count =
