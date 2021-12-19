@@ -6,6 +6,7 @@ mod day01;
 mod day02;
 mod day03;
 mod day04;
+mod day05;
 mod day06;
 mod day07;
 mod day08;
@@ -61,6 +62,12 @@ fn main() {
         Some(1924),
     );
 
+    day05::Day05::test(
+        "0,9 -> 5,9\n8,0 -> 0,8\n9,4 -> 3,4\n2,2 -> 2,1\n7,0 -> 7,4\n6,4 -> 2,0\n0,9 -> 2,9\n3,4 -> 1,4\n0,0 -> 8,8\n5,5 -> 8,2",
+        Some(5),
+        Some(12),
+    );
+
     day06::Day06V0::test("3,4,3,1,2", Some(5934), Some(26984457539));
     day06::Day06::test("3,4,3,1,2", Some(5934), Some(26984457539));
 
@@ -102,6 +109,8 @@ fn main() {
     day03::v2::Day03::run(include_str!("../data/day03_input"));
 
     day04::Day04::run(include_str!("../data/day04_input"));
+
+    day05::Day05::run(include_str!("../data/day05_input"));
 
     day06::Day06V0::run(include_str!("../data/day06_input"));
     day06::Day06::run(include_str!("../data/day06_input"));
