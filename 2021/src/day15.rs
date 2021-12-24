@@ -1,6 +1,7 @@
 use year2021::Solution;
 
 use crate::utils;
+use crate::utils::dijkstra::{Boundaries, Coord};
 
 pub struct Day15;
 
@@ -20,7 +21,7 @@ impl Solution<i32, i32> for Day15 {
             |_, &(x, y)| Some(map[y][x]),
             Self::manhattan_dist,
         )
-        .and_then(|(_, cost)| Some(cost))
+        .map(|(_, cost)| cost)
     }
 
     fn part2(input: &Self::Input) -> Option<i32> {
@@ -29,11 +30,19 @@ impl Solution<i32, i32> for Day15 {
         let proj_width = *width * 5;
         let proj_height = *height * 5;
 
-        utils::a_star::solve(
-            &(0, 0),
-            &(proj_width - 1, proj_height - 1),
-            &(proj_width, proj_height),
-            |_, (x, y)| {
+        utils::dijkstra::solve(
+            &Coord { x: 0, y: 0 },
+            &Coord {
+                x: proj_width - 1,
+                y: proj_height - 1,
+            },
+            &Boundaries {
+                x: 0,
+                y: 0,
+                width: proj_width,
+                height: proj_height,
+            },
+            |_, Coord { x, y }| {
                 Some(
                     match map[y % height][x % width] + (x / width + y / height) as i32 {
                         x if x > 9 => x - 9,
@@ -41,9 +50,8 @@ impl Solution<i32, i32> for Day15 {
                     },
                 )
             },
-            Self::manhattan_dist,
         )
-        .and_then(|(_, total_cost)| Some(total_cost))
+        .map(|(_, total_cost)| total_cost)
     }
 
     fn parse(input: &str) -> Result<Self::Input, &str> {
@@ -53,7 +61,7 @@ impl Solution<i32, i32> for Day15 {
             .map(|line| line.chars().map(|c| (c as u8 - b'0') as i32).collect())
             .collect();
         let height = map.len();
-        let width = input.find("\n").expect("Invalid input");
+        let width = input.find('\n').expect("Invalid input");
 
         Ok((map, width, height))
     }
