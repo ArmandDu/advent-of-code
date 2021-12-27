@@ -13,6 +13,7 @@ mod day08;
 mod day09;
 mod day10;
 mod day11;
+mod day12;
 mod day13;
 mod day14;
 mod day15;
@@ -97,6 +98,12 @@ fn main() {
         Some(195),
     );
 
+    day12::Day12::test(
+        "start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end",
+        Some(10),
+        Some(36),
+    );
+
     day13::Day13::test("6,10\n0,14\n9,10\n0,3\n10,4\n4,11\n6,0\n6,12\n4,1\n0,13\n10,12\n3,4\n3,0\n8,4\n1,10\n2,14\n8,10\n9,0\n\nfold along y=7\nfold along x=5", Some(17), Some("\n▓▓▓▓▓\n▓   ▓\n▓   ▓\n▓   ▓\n▓▓▓▓▓".to_string()));
 
     day14::Day14::test("NNCB\n\nCH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C", Some(1588), Some(2188189693529));
@@ -131,6 +138,8 @@ fn main() {
     day10::Day10::run(include_str!("../data/day10_input"));
 
     day11::Day11::run(include_str!("../data/day11_input"));
+
+    day12::Day12::run(include_str!("../data/day12_input"));
 
     day13::Day13::run(include_str!("../data/day13_input"));
 

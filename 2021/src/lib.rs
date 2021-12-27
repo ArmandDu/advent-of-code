@@ -44,7 +44,7 @@ pub trait Solution<P1: Display, P2: Display> {
     }
 
     fn run(input: &str) {
-        let (input, parse_time) = bench!(Self::parse(&input));
+        let (input, parse_time) = bench!(Self::parse(input));
         let input = input.unwrap();
         let (p1, s1) = bench!(Self::part1(&input));
         let (p2, s2) = bench!(Self::part2(&input));
