@@ -17,6 +17,7 @@ mod day12;
 mod day13;
 mod day14;
 mod day15;
+mod day16;
 
 fn main() {
     println!("---- TESTING ---\n");
@@ -76,7 +77,7 @@ fn main() {
     day07::Day07::test("16,1,2,0,4,2,7,1,2,14", Some(37), Some(168));
 
     day08::Day08::test(
-        "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe\nedbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc\nfgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg\nfbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb\naecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea\nfgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb\ndbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe\nbdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef\negadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb\ngcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce", 
+        "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe\nedbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc\nfgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg\nfbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb\naecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea\nfgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb\ndbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe\nbdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef\negadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb\ngcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce",
         Some(26),
         Some(61229));
 
@@ -109,6 +110,17 @@ fn main() {
     day14::Day14::test("NNCB\n\nCH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C", Some(1588), Some(2188189693529));
 
     day15::Day15::test("1163751742\n1381373672\n2136511328\n3694931569\n7463417111\n1319128137\n1359912421\n3125421639\n1293138521\n2311944581", Some(40), Some(315));
+
+    day16::Day16::test("8A004A801A8002F478", Some(16), None);
+    day16::Day16::test("620080001611562C8802118E34", Some(12), None);
+    day16::Day16::test("C0015000016115A2E0802F182340", Some(23), None);
+    day16::Day16::test("A0016C880162017C3686B18A3D4780", Some(31), None);
+    day16::Day16::test("C200B40A82", None, Some(3));
+    day16::Day16::test("04005AC33890", None, Some(54));
+    day16::Day16::test("880086C3E88112", None, Some(7));
+    day16::Day16::test("CE00C43D881120", None, Some(9));
+    day16::Day16::test("D8005AC2A8F0", None, Some(1));
+    day16::Day16::test("9C0141080250320F1802104A08", None, Some(1));
 
     println!("\n---- SOLUTIONS ---\n");
 
@@ -146,4 +158,6 @@ fn main() {
     day14::Day14::run(include_str!("../data/day14_input"));
 
     day15::Day15::run(include_str!("../data/day15_input"));
+
+    day16::Day16::run(include_str!("../data/day16_input"));
 }
