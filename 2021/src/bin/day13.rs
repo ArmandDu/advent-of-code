@@ -1,6 +1,6 @@
+use aoc::Solution;
 use itertools::Itertools;
 use std::collections::HashSet;
-use year2021::Solution;
 
 pub struct Day13;
 pub type DotSet = HashSet<(i32, i32)>;
@@ -86,5 +86,24 @@ impl Day13 {
                 )
             })
             .collect()
+    }
+}
+
+fn main() {
+    Day13::run(include_str!("../../data/day13_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "6,10\n0,14\n9,10\n0,3\n10,4\n4,11\n6,0\n6,12\n4,1\n0,13\n10,12\n3,4\n3,0\n8,4\n1,10\n2,14\n8,10\n9,0\n\nfold along y=7\nfold along x=5";
+    #[test]
+    fn day13() {
+        Day13::test(
+            INPUT,
+            Some(17),
+            Some("\n▓▓▓▓▓\n▓   ▓\n▓   ▓\n▓   ▓\n▓▓▓▓▓".to_owned()),
+        );
     }
 }

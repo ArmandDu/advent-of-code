@@ -1,5 +1,5 @@
+use aoc::Solution;
 use std::collections::VecDeque;
-use year2021::Solution;
 
 pub struct Day11;
 
@@ -121,5 +121,20 @@ impl Solution<usize, usize> for Day11 {
 
     fn parse(input: &str) -> Result<Self::Input, &str> {
         Grid::from_str(&input)
+    }
+}
+
+fn main() {
+    Day11::run(include_str!("../../data/day11_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "5483143223\n2745854711\n5264556173\n6141336146\n6357385478\n4167524645\n2176841721\n6882881134\n4846848554\n5283751526\n";
+    #[test]
+    fn day11() {
+        Day11::test(INPUT, Some(1656), Some(195));
     }
 }

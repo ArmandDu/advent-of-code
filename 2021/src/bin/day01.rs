@@ -1,5 +1,5 @@
+use aoc::Solution;
 use itertools::Itertools;
-use year2021::Solution;
 
 pub struct Day01;
 
@@ -29,5 +29,23 @@ impl Solution<usize, usize> for Day01 {
             .lines()
             .map(|l| l.parse::<i32>().unwrap())
             .collect())
+    }
+}
+
+fn main() {
+    Day01::run(include_str!("../../data/day01_star1_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn day01() {
+        Day01::test(
+            "199\n200\n208\n210\n200\n207\n240\n269\n260\n263",
+            Some(7),
+            Some(5),
+        )
     }
 }

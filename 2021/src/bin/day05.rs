@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use year2021::Solution;
+use aoc::Solution;
 
 pub struct Day05;
 
@@ -74,5 +74,23 @@ impl Day05 {
             x0 += dx;
             y0 += dy;
         }
+    }
+}
+
+fn main() {
+    Day05::run(include_str!("../../data/day05_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn day05() {
+        Day05::test(
+            "0,9 -> 5,9\n8,0 -> 0,8\n9,4 -> 3,4\n2,2 -> 2,1\n7,0 -> 7,4\n6,4 -> 2,0\n0,9 -> 2,9\n3,4 -> 1,4\n0,0 -> 8,8\n5,5 -> 8,2",
+            Some(5),
+            Some(12),
+        );
     }
 }

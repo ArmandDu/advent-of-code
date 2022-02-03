@@ -1,6 +1,6 @@
+use aoc::Solution;
 use itertools::Itertools;
 use std::collections::HashMap;
-use year2021::Solution;
 
 pub struct Day14;
 
@@ -103,5 +103,20 @@ impl Day14 {
             .minmax()
             .into_option()
             .and_then(|(min, max)| Some(max - min))
+    }
+}
+
+fn main() {
+    Day14::run(include_str!("../../data/day14_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "NNCB\n\nCH -> B\nHH -> N\nCB -> H\nNH -> C\nHB -> C\nHC -> B\nHN -> C\nNN -> C\nBH -> H\nNC -> B\nNB -> B\nBN -> B\nBB -> N\nBC -> B\nCC -> N\nCN -> C";
+    #[test]
+    fn day14() {
+        Day14::test(INPUT, Some(1588), Some(2188189693529));
     }
 }

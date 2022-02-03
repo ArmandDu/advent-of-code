@@ -1,7 +1,7 @@
-use year2021::Solution;
+use aoc::Solution;
 
-use crate::utils;
 use crate::utils::dijkstra::{Boundaries, Coord};
+use aoc::utils;
 
 pub struct Day15;
 
@@ -73,5 +73,20 @@ impl Day15 {
         let (bx, by) = *b;
 
         (ax as i32 - bx as i32).abs() + (ay as i32 - by as i32).abs()
+    }
+}
+
+fn main() {
+    Day15::run(include_str!("../../data/day15_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "1163751742\n1381373672\n2136511328\n3694931569\n7463417111\n1319128137\n1359912421\n3125421639\n1293138521\n2311944581";
+    #[test]
+    fn day15() {
+        Day15::test(INPUT, Some(40), Some(315));
     }
 }

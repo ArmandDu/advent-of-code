@@ -1,6 +1,6 @@
-use crate::day10::State::{Complete, Corrupted, Incomplete};
+use aoc::Solution;
 use itertools::Itertools;
-use year2021::Solution;
+use State::{Complete, Corrupted, Incomplete};
 
 pub struct Day10;
 
@@ -96,5 +96,20 @@ impl Solution<usize, usize> for Day10 {
                 }
             })
             .collect())
+    }
+}
+
+fn main() {
+    Day10::run(include_str!("../../data/day10_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "[({(<(())[]>[[{[]{<()<>>\n[(()[<>])]({[<{<<[]>>(\n{([(<{}[<>[]}>{[]{[(<()>\n(((({<>}<{<{<>}{[]{[]{}\n[[<[([]))<([[{}[[()]]]\n[{[{({}]{}}([{[{{{}}([]\n{<[[]]>}<{[{[{[]{()[[[]\n[<(<(<(<{}))><([]([]()\n<{([([[(<>()){}]>(<<{{\n<{([{{}}[<[[[<>{}]]]>[]]";
+    #[test]
+    fn day10() {
+        Day10::test(INPUT, Some(26397), Some(288957));
     }
 }

@@ -1,5 +1,5 @@
+use aoc::Solution;
 use std::collections::HashMap;
-use year2021::Solution;
 
 pub struct Day12;
 
@@ -86,5 +86,20 @@ impl Day12 {
         }
 
         solves
+    }
+}
+
+fn main() {
+    Day12::run(include_str!("../../data/day12_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end";
+    #[test]
+    fn day12() {
+        Day12::test(INPUT, Some(10), Some(36));
     }
 }

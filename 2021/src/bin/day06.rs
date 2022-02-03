@@ -1,4 +1,4 @@
-use year2021::Solution;
+use aoc::Solution;
 
 pub struct Day06;
 
@@ -92,5 +92,26 @@ impl Day06V0 {
             pool.append(&mut newborns);
             pool
         })
+    }
+}
+
+fn main() {
+    Day06V0::run(include_str!("../../data/day06_input"));
+    Day06::run(include_str!("../../data/day06_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "3,4,3,1,2";
+
+    #[test]
+    fn day06_v0() {
+        Day06V0::test(INPUT, Some(5934), Some(26984457539));
+    }
+    #[test]
+    fn day06() {
+        Day06::test(INPUT, Some(5934), Some(26984457539));
     }
 }

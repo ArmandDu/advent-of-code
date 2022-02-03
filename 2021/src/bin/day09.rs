@@ -1,6 +1,6 @@
-use crate::utils::neighbors;
+use aoc::utils::neighbors;
+use aoc::Solution;
 use itertools::Itertools;
-use year2021::Solution;
 
 pub struct Day09;
 
@@ -95,5 +95,21 @@ impl Day09 {
                 }
                 low_points
             })
+    }
+}
+
+fn main() {
+    Day09::run(include_str!("../../data/day09_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678";
+
+    #[test]
+    fn day09() {
+        Day09::test(INPUT, Some(15), Some(1134));
     }
 }

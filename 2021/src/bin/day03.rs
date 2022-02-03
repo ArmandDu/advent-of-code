@@ -1,7 +1,7 @@
-use year2021::Solution;
+use aoc::Solution;
 
 pub mod v2 {
-    use year2021::Solution;
+    use aoc::Solution;
 
     pub struct Day03;
 
@@ -70,7 +70,7 @@ pub mod v2 {
 }
 
 pub mod v1 {
-    use year2021::Solution;
+    use aoc::Solution;
 
     pub struct Day03;
 
@@ -154,8 +154,8 @@ pub mod v1 {
 }
 
 pub mod v0_1 {
-    use crate::day03::Day03 as Day03V0;
-    use year2021::Solution;
+    use super::Day03 as Day03V0;
+    use aoc::Solution;
 
     pub struct Day03;
 
@@ -309,5 +309,40 @@ impl Day03 {
                 return Self::find_recur(candidate(ones, zeroes), index + 1, candidate);
             }
         };
+    }
+}
+
+fn main() {
+    Day03::run(include_str!("../../data/day03_input"));
+    v0_1::Day03::run(include_str!("../../data/day03_input"));
+    v1::Day03::run(include_str!("../../data/day03_input"));
+    v2::Day03::run(include_str!("../../data/day03_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str =
+        "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010";
+
+    #[test]
+    fn day03_v0() {
+        Day03::test(INPUT, Some(198), Some(230))
+    }
+
+    #[test]
+    fn day03_v01() {
+        v0_1::Day03::test(INPUT, Some(198), Some(230))
+    }
+
+    #[test]
+    fn day03_v1() {
+        v1::Day03::test(INPUT, Some(198), Some(230))
+    }
+
+    #[test]
+    fn day03_v02() {
+        v2::Day03::test(INPUT, Some(198), Some(230))
     }
 }

@@ -1,5 +1,5 @@
+use aoc::Solution;
 use itertools::Itertools;
-use year2021::Solution;
 
 pub struct Day16;
 
@@ -157,5 +157,55 @@ impl Solution<usize, usize> for Day16 {
             .chars()
             .map(|c| format!("{:04b}", c.to_digit(16).unwrap_or(0)))
             .join(""))
+    }
+}
+
+fn main() {
+    Day16::run(include_str!("../../data/day16_input"));
+}
+
+#[cfg(test)]
+mod day16 {
+    use crate::*;
+
+    #[test]
+    fn part_1_case_1() {
+        Day16::test("8A004A801A8002F478", Some(16), None);
+    }
+    #[test]
+    fn part_1_case_2() {
+        Day16::test("620080001611562C8802118E34", Some(12), None);
+    }
+    #[test]
+    fn part_1_case_3() {
+        Day16::test("C0015000016115A2E0802F182340", Some(23), None);
+    }
+    #[test]
+    fn part_1_case_4() {
+        Day16::test("A0016C880162017C3686B18A3D4780", Some(31), None);
+    }
+    #[test]
+    fn part_2_case_1() {
+        Day16::test("C200B40A82", None, Some(3));
+    }
+    #[test]
+    fn part_2_case_2() {
+        Day16::test("04005AC33890", None, Some(54));
+    }
+    #[test]
+    fn part_2_case_3() {
+        Day16::test("880086C3E88112", None, Some(7));
+    }
+    #[test]
+    fn part_2_case_4() {
+        Day16::test("CE00C43D881120", None, Some(9));
+    }
+    #[test]
+    fn part_2_case_5() {
+        Day16::test("D8005AC2A8F0", None, Some(1));
+    }
+    #[test]
+    fn part_2_case_6() {
+        Day16::test("9C0141080250320F1802104A08", None, Some(1));
     }
 }

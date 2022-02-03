@@ -1,4 +1,4 @@
-use year2021::Solution;
+use aoc::Solution;
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -102,4 +102,32 @@ fn parse(input: &str) -> Vec<Instruction> {
             };
         })
         .collect()
+}
+
+fn main() {
+    Day02::run(include_str!("../../data/day02_part1_input"));
+    Day02V2::run(include_str!("../../data/day02_part1_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn day02() {
+        Day02::test(
+            "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2",
+            Some(150),
+            Some(900),
+        )
+    }
+
+    #[test]
+    fn day02_v2() {
+        Day02V2::test(
+            "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2",
+            Some(150),
+            Some(900),
+        )
+    }
 }

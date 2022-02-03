@@ -1,6 +1,6 @@
+use aoc::Solution;
 use itertools::Itertools;
 use std::collections::HashMap;
-use year2021::Solution;
 
 pub struct Day07;
 
@@ -55,5 +55,21 @@ impl Solution<usize, usize> for Day07 {
             .map(|input| input.parse::<i32>().unwrap())
             .sorted()
             .collect::<Vec<_>>())
+    }
+}
+
+fn main() {
+    Day07::run(include_str!("../../data/day07_input"));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    const INPUT: &'static str = "16,1,2,0,4,2,7,1,2,14";
+
+    #[test]
+    fn day07() {
+        Day07::test(INPUT, Some(37), Some(168));
     }
 }
