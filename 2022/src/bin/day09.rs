@@ -4,37 +4,15 @@ use std::collections::HashMap;
 struct Day09;
 
 impl Day09 {
-    fn move_tail(tail: (i32, i32), head: &(i32, i32), delta: &(i32, i32)) -> (i32, i32) {
-        match (tail.0.abs_diff(head.0), tail.1.abs_diff(head.1)) {
-            /*
-            h = 2,0
-            t = 0,0
-            d = 1,0
-            tx = 0 + (2-0) - 1 = 1,
-            ty = 0 + (0-0) - 0 = 0
+    fn move_tail(from: (i32, i32), to: &(i32, i32)) -> (i32, i32) {
+        let (delta_x, delta_y) = (to.0 - from.0, to.1 - from.1);
 
-            h = 3,1
-            t = 2,0
-            d = 0,1
-            tx = 2 + (3-2) - 0 = 3,
-            ty = 0 + (1-0) - 1 = 0
-
-            h = 2,2
-            t = 0,0
-            d = 1,0
-            tx = 0 + (2 - 0) - 1 = 1,
-            ty = 0 + (2 - 0) - 0 = 2
-            */
-            (0, n) | (n, 0) if n > 1 => (
-                tail.0 + (head.0 - tail.0) - (head.0 - tail.0).signum(),
-                tail.1 + (head.1 - tail.1) - (head.1 - tail.1).signum(),
-            ),
-            (1, 2) | (2, 1) => (
-                tail.0 + (head.0 - tail.0) - delta.0,
-                tail.1 + (head.1 - tail.1) - delta.1,
-            ),
-
-            _ => tail,
+        match (delta_x.abs(), delta_y.abs()) {
+            (0, 1) | (1, 1) | (1, 0) | (0, 0) => from,
+            (x, y) if x <= 2 && y <= 2 => (from.0 + delta_x.signum(), from.1 + delta_y.signum()),
+            (0, 2) => (from.0 + delta_x.signum(), from.1 + delta_y),
+            (2, 0) => (from.0 + delta_x, from.1 + delta_y.signum()),
+            _ => unreachable!(),
         }
     }
 }
@@ -74,7 +52,7 @@ impl Solution for Day09 {
                 for _step in 1..=*count {
                     head = (head.0 + delta.0, head.1 + delta.1);
 
-                    tail = Day09::move_tail(tail, &head, delta);
+                    tail = Day09::move_tail(tail, &head);
 
                     *history.entry(tail).or_default() += 1;
                 }
@@ -98,10 +76,8 @@ impl Solution for Day09 {
                     body[0] = (head.0 + delta.0, head.1 + delta.1);
 
                     for index in 1..10 {
-                        body[index] = Day09::move_tail(body[index], &body[index - 1], delta);
+                        body[index] = Day09::move_tail(body[index], &body[index - 1]);
                     }
-
-                    dbg!(&body);
 
                     *history.entry(*body.last().unwrap()).or_default() += 1;
                 }
