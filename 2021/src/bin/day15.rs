@@ -1,7 +1,7 @@
 use aoc::Solution;
 
-use crate::utils::dijkstra::{Boundaries, Coord};
 use aoc::utils;
+use aoc_utils::dijkstra::{self, Boundaries, Coord};
 
 pub struct Day15;
 
@@ -29,13 +29,13 @@ impl Solution<i32, i32> for Day15 {
 
         let proj_width = *width * 5;
         let proj_height = *height * 5;
+        let target = Coord {
+            x: proj_width - 1,
+            y: proj_height - 1,
+        };
 
-        utils::dijkstra::solve(
+        dijkstra::solve(
             &Coord { x: 0, y: 0 },
-            &Coord {
-                x: proj_width - 1,
-                y: proj_height - 1,
-            },
             &Boundaries {
                 x: 0,
                 y: 0,
@@ -50,6 +50,7 @@ impl Solution<i32, i32> for Day15 {
                     },
                 )
             },
+            |current| current == &target,
         )
         .map(|(_, total_cost)| total_cost)
     }
@@ -84,7 +85,7 @@ fn main() {
 mod tests {
     use crate::*;
 
-    const INPUT: &'static str = "1163751742\n1381373672\n2136511328\n3694931569\n7463417111\n1319128137\n1359912421\n3125421639\n1293138521\n2311944581";
+    const INPUT: &str = "1163751742\n1381373672\n2136511328\n3694931569\n7463417111\n1319128137\n1359912421\n3125421639\n1293138521\n2311944581";
     #[test]
     fn day15() {
         Day15::test(INPUT, Some(40), Some(315));

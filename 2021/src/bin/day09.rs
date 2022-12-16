@@ -1,5 +1,5 @@
-use aoc::utils::neighbors;
 use aoc::Solution;
+use aoc_utils::neighbors;
 use itertools::Itertools;
 
 pub struct Day09;
@@ -106,7 +106,7 @@ fn main() {
 mod tests {
     use crate::*;
 
-    const INPUT: &'static str = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678";
+    const INPUT: &str = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678";
 
     #[test]
     fn day09() {

@@ -7,6 +7,7 @@ name = "advent-of-code-2022"
 version = "0.1.0"
 dependencies = [
  "aoc-runner",
+ "aoc-utils",
  "concat-idents",
  "itertools",
  "serde_json",
@@ -22,6 +23,10 @@ dependencies = [
  "humantime",
  "thiserror",
 ]
+
+[[package]]
+name = "aoc-utils"
+version = "0.1.0"
 
 [[package]]
 name = "cfg-if"

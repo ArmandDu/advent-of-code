@@ -1,5 +1,5 @@
 use aoc::Solution;
-use shared::lines_to_owned;
+use aoc_utils::lines_to_owned;
 use std::collections::HashSet;
 
 struct Day03;
