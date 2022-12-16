@@ -1,3 +1,4 @@
+use aoc::solution::SolutionError;
 use aoc::Solution;
 use std::collections::VecDeque;
 
@@ -12,7 +13,9 @@ impl Solution for Day05 {
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
         //skip first character as it's manually added for fixing the "trim" issue.
-        let (stacks, instructions) = &input[1..].split_once("\r\n\r\n").unwrap();
+        let (stacks, instructions) = &input[1..]
+            .split_once("\n\n")
+            .ok_or(SolutionError::ParseError)?;
 
         let transposed_stacks = {
             let mut stacks = stacks
@@ -130,7 +133,7 @@ mod tests {
 
     aoc::test! {
         day_05:
-        - "!    [D]    \r\n[N] [C]    \r\n[Z] [M] [P]\r\n 1   2   3 \r\n\r\nmove 1 from 2 to 1\r\nmove 3 from 1 to 3\r\nmove 2 from 2 to 1\r\nmove 1 from 1 to 2\r\n"
+        - "!    [D]    \n[N] [C]    \n[Z] [M] [P]\n 1   2   3 \n\nmove 1 from 2 to 1\nmove 3 from 1 to 3\nmove 2 from 2 to 1\nmove 1 from 1 to 2\n"
             => Some("CMZ".to_owned())
             => Some("MCD".to_owned())
     }
