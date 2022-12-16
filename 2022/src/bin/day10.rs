@@ -36,11 +36,11 @@ impl Solution for Day10 {
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        let (_, sum) = input.iter().take(220).enumerate().fold(
+        let (_, sum) = input.iter().take(220).zip(1..).fold(
             (1, 0),
-            |(mut x, mut sum), (cycle, instruction)| {
-                if [20, 60, 100, 140, 180, 220].contains(&(cycle + 1)) {
-                    sum += (cycle + 1) as i32 * x;
+            |(mut x, mut sum), (instruction, cycle)| {
+                if [20, 60, 100, 140, 180, 220].contains(&(cycle)) {
+                    sum += cycle * x;
                 }
 
                 match instruction {
@@ -56,10 +56,10 @@ impl Solution for Day10 {
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        let (output, _) = input.iter().enumerate().fold(
+        let (output, _) = input.iter().zip(0..).fold(
             (String::new(), 1),
-            |(mut output, mut x), (cycle, instruction)| {
-                match [x - 1, x, x + 1].contains(&(cycle as i32 % 40)) {
+            |(mut output, mut x), (instruction, cycle)| {
+                match [x - 1, x, x + 1].contains(&(cycle % 40)) {
                     true => output.push('#'),
                     false => output.push(' '),
                 };
