@@ -1,32 +1,17 @@
-use aoc::solution::SolutionError;
 use aoc::Solution;
 use itertools::{Itertools, Product};
 use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
+use std::env;
 
-use aoc_utils::dijkstra::Boundaries;
+use crate::cave::{Cave, Tile};
+
 use itertools::FoldWhile::{Continue, Done};
+
+use shared::Point;
 use std::iter::Map;
 use std::ops::RangeInclusive;
 
 struct Day14;
-
-#[derive(Debug, Copy, Clone, Default, Eq, PartialEq, Hash)]
-struct Point(usize, usize);
-
-impl TryFrom<&str> for Point {
-    type Error = SolutionError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        use SolutionError::*;
-
-        let (x, y) = value.split_once(',').ok_or(ParseError)?;
-        let x = x.parse().or(Err(ParseError))?;
-        let y = y.parse().or(Err(ParseError))?;
-
-        Ok(Self(x, y))
-    }
-}
 
 #[derive(Debug, Copy, Clone)]
 struct Line(Point, Point);
@@ -43,164 +28,148 @@ type LineIter =
 impl Line {
     fn iter(&self) -> LineIter {
         let Self(start, end) = self;
-        let start_x = start.0.min(end.0);
-        let end_x = start.0.max(end.0);
+        let min = start.min(end);
+        let max = start.max(end);
 
-        let start_y = start.1.min(end.1);
-        let end_y = start.1.max(end.1);
-
-        (start_x..=end_x)
-            .cartesian_product(start_y..=end_y)
-            .map(|(x, y)| Point(x, y))
+        (min.x()..=max.x())
+            .cartesian_product(min.y()..=max.y())
+            .map(Point::from)
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-enum Tile {
-    Empty,
-    Sand,
-    Rock,
-}
+mod cave {
+    use aoc::solution::SolutionError;
+    use aoc_utils::dijkstra::Boundaries;
+    use itertools::Itertools;
+    use shared::Point;
+    use std::collections::HashMap;
+    use std::ops::{Deref, DerefMut};
 
-#[derive(Debug, Copy, Clone)]
-enum Mode {
-    Bottomless,
-    Bottom(usize),
-}
-
-#[derive(Debug, Clone)]
-struct Grid {
-    boundaries: Boundaries,
-    mode: Mode,
-    tiles: HashMap<Point, Tile>,
-}
-
-impl Display for Grid {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let depth = match self.mode {
-            Mode::Bottomless => 0,
-            Mode::Bottom(depth) => depth,
-        };
-
-        write!(
-            f,
-            "{}",
-            (self.boundaries.y..=self.boundaries.height + depth)
-                .map(|j| {
-                    (self.boundaries.x - depth..=self.boundaries.width + depth)
-                        .map(|i| match self.get(&Point(i, j)) {
-                            Some(Tile::Empty) => ".",
-                            Some(Tile::Sand) => "o",
-                            Some(Tile::Rock) => "#",
-                            None => "X",
-                        })
-                        .collect::<String>()
-                })
-                .join("\n")
-        )
-    }
-}
-
-impl TryFrom<&Vec<Line>> for Grid {
-    type Error = SolutionError;
-
-    fn try_from(lines: &Vec<Line>) -> Result<Self, Self::Error> {
-        let (x, width) = lines
-            .iter()
-            .flat_map(|Line(start, end)| [start.0, end.0])
-            .minmax()
-            .into_option()
-            .ok_or(SolutionError::ParseError)?;
-
-        let height = lines
-            .iter()
-            .flat_map(|Line(start, end)| [start.1, end.1])
-            .max()
-            .ok_or(SolutionError::ParseError)?;
-
-        let boundaries = Boundaries {
-            x,
-            y: 0,
-            width,
-            height,
-        };
-
-        Ok(Self {
-            boundaries,
-            mode: Mode::Bottomless,
-            tiles: lines
-                .iter()
-                .flat_map(|line| line.iter())
-                .map(|point| (point, Tile::Rock))
-                .collect(),
-        })
-    }
-}
-
-impl Grid {
-    fn is_inbounds(&self, point: &Point) -> bool {
-        point.1 >= self.boundaries.y && point.1 <= self.boundaries.height
+    #[derive(Debug, Copy, Clone)]
+    pub enum Tile {
+        Sand,
+        Rock,
     }
 
-    fn get_mut(&mut self, point: &Point) -> Option<&mut Tile> {
-        match self.mode {
-            Mode::Bottomless => self
-                .is_inbounds(point)
-                .then(|| self.tiles.entry(*point).or_insert(Tile::Empty)),
-            Mode::Bottom(depth) => {
-                if point.1 == self.boundaries.height + depth {
-                    Some(self.tiles.entry(*point).or_insert(Tile::Rock))
-                } else if point.1 >= self.boundaries.y && point.1 <= self.boundaries.height + depth
-                {
-                    Some(self.tiles.entry(*point).or_insert(Tile::Empty))
-                } else {
-                    None
-                }
-            }
+    #[derive(Debug, Clone)]
+    pub struct Cave {
+        boundaries: Boundaries,
+        tiles: HashMap<Point, Tile>,
+    }
+
+    impl Cave {
+        pub fn height(&self) -> usize {
+            self.boundaries.height
         }
     }
 
-    fn get(&self, point: &Point) -> Option<&Tile> {
-        match self.mode {
-            Mode::Bottomless => self
-                .is_inbounds(point)
-                .then(|| self.tiles.get(point).or(Some(&Tile::Empty)))
-                .flatten(),
-            Mode::Bottom(depth) => {
-                if point.1 == self.boundaries.height + depth {
-                    self.tiles.get(point).or(Some(&Tile::Rock))
-                } else if point.1 >= self.boundaries.y && point.1 <= self.boundaries.height + depth
-                {
-                    self.tiles.get(point).or(Some(&Tile::Empty))
-                } else {
-                    None
-                }
+    impl Deref for Cave {
+        type Target = HashMap<Point, Tile>;
+
+        fn deref(&self) -> &Self::Target {
+            &self.tiles
+        }
+    }
+
+    impl DerefMut for Cave {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.tiles
+        }
+    }
+
+    impl Cave {
+        pub fn get_tile(&self, point: &Point, bottom: Option<usize>) -> Option<&Tile> {
+            match self.get(point) {
+                Some(tile) => Some(tile),
+                None => match (point.y(), bottom) {
+                    (j, Some(depth)) if j == self.boundaries.height + depth => Some(&Tile::Rock),
+                    _ => None,
+                },
             }
+        }
+
+        pub fn print(&self, leak: Point, bottom: Option<usize>) -> String {
+            let depth = bottom.unwrap_or(0);
+
+            (self.boundaries.y..=self.boundaries.height + depth)
+                .map(|j| {
+                    (self.boundaries.x - depth..=self.boundaries.width + depth)
+                        .map(|i| match Point::new(i, j) {
+                            p if p == leak => '+',
+                            p => match self.get_tile(&p, bottom) {
+                                Some(Tile::Sand) => 'o',
+                                Some(Tile::Rock) => '#',
+                                None => '.',
+                            },
+                        })
+                        .join("")
+                })
+                .join("\n")
+        }
+    }
+
+    impl TryFrom<&HashMap<Point, Tile>> for Cave {
+        type Error = SolutionError;
+
+        fn try_from(tiles: &HashMap<Point, Tile>) -> Result<Self, Self::Error> {
+            let (x, width) = tiles
+                .keys()
+                .map(|point| point.x())
+                .minmax()
+                .into_option()
+                .ok_or(SolutionError::ParseError)?;
+
+            let height = tiles
+                .keys()
+                .map(|point| point.y())
+                .max()
+                .ok_or(SolutionError::ParseError)?;
+
+            let boundaries = Boundaries {
+                x,
+                y: 0,
+                width,
+                height,
+            };
+
+            Ok(Self {
+                boundaries,
+                tiles: tiles.to_owned(),
+            })
         }
     }
 }
 
 impl Day14 {
-    fn simulate(grid: Grid, leak: Point) -> Grid {
-        (0..)
-            .fold_while((grid, leak), |(mut grid, sand), _| {
-                let down = Point(sand.0, sand.1 + 1);
-                let left = Point(sand.0 - 1, sand.1 + 1);
-                let right = Point(sand.0 + 1, sand.1 + 1);
+    fn simulate(initial: Cave, leak: Point, bottom: Option<usize>) -> Cave {
+        let max_y = initial.height() + bottom.unwrap_or_default();
 
-                if let Some(Tile::Sand) = grid.get(&leak) {
-                    return Done((grid, sand));
+        (0..)
+            .fold_while((initial, leak), |(mut cave, sand), _| {
+                if sand.y() >= max_y {
+                    return Done((cave, sand));
                 }
 
-                match (grid.get(&down), grid.get(&left), grid.get(&right)) {
-                    (None, _, _) | (_, None, _) | (_, _, None) => Done((grid, sand)),
-                    (Some(Tile::Empty), _, _) => Continue((grid, down)),
-                    (_, Some(Tile::Empty), _) => Continue((grid, left)),
-                    (_, _, Some(Tile::Empty)) => Continue((grid, right)),
-                    (Some(Tile::Rock), _, _) | (Some(Tile::Sand), _, _) => {
-                        *grid.get_mut(&sand).unwrap() = Tile::Sand;
+                if let Some(Tile::Sand) = cave.get(&leak) {
+                    return Done((cave, sand));
+                }
 
-                        Continue((grid, leak))
+                let down = Point::new(sand.x(), sand.y() + 1);
+                let left = Point::new(sand.x() - 1, sand.y() + 1);
+                let right = Point::new(sand.x() + 1, sand.y() + 1);
+
+                match (
+                    cave.get_tile(&down, bottom),
+                    cave.get_tile(&left, bottom),
+                    cave.get_tile(&right, bottom),
+                ) {
+                    (None, _, _) => Continue((cave, down)),
+                    (_, None, _) => Continue((cave, left)),
+                    (_, _, None) => Continue((cave, right)),
+                    (Some(_), _, _) => {
+                        cave.insert(sand, Tile::Sand);
+
+                        Continue((cave, leak))
                     }
                 }
             })
@@ -212,44 +181,53 @@ impl Day14 {
 impl Solution for Day14 {
     const TITLE: &'static str = "Regolith Reservoir";
     const DAY: u8 = 14;
-    type Input = Vec<Line>;
+    type Input = HashMap<Point, Tile>;
     type P1 = usize;
     type P2 = usize;
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
-        let lines: Vec<Line> = input
+        Ok(input
             .lines()
             .flat_map(|line| {
                 line.split(" -> ")
                     .filter_map(|point| Point::try_from(point).ok())
                     .tuple_windows::<(_, _)>()
             })
-            .map(|line| line.into())
-            .collect();
-
-        Ok(lines)
+            .flat_map(|line| Line::from(line).iter().map(|point| (point, Tile::Rock)))
+            .collect())
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        let grid = Grid::try_from(input).ok()?;
-        let rock_count = grid.tiles.len();
+        let cave = Cave::try_from(input).ok()?;
+        let leak = Point::new(500, 0);
+        let rock_count = cave.len();
 
-        Some(Day14::simulate(grid, Point(500, 0)).tiles.len() - rock_count)
+        Some(Day14::simulate(cave, leak, None).len() - rock_count)
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        let mut grid = Grid::try_from(input).ok()?;
-        let rock_count = grid.tiles.len();
+        let cave = Cave::try_from(input).ok()?;
+        let leak = Point::new(500, 0);
+        let rock_count = cave.len();
 
-        grid.mode = Mode::Bottom(2);
-
-        let grid = Day14::simulate(grid, Point(500, 0));
-
-        Some(grid.tiles.len() - rock_count)
+        Some(Day14::simulate(cave, leak, Some(2)).len() - rock_count)
     }
 }
 
 fn main() {
+    match env::args().nth(1) {
+        Some(query) if query == "--print" => {
+            let input = Day14::parse(&Day14::get_input().unwrap()).unwrap();
+            let cave = Cave::try_from(&input).unwrap();
+            let leak = Point::new(500, 0);
+
+            println!("==PART 1===");
+            println!("{}", cave.print(leak, None));
+            println!("\n==PART 2===");
+            println!("{}", cave.print(leak, Some(2)));
+        }
+        _ => {}
+    }
     aoc::solution!(Day14)
 }
 #[cfg(test)]

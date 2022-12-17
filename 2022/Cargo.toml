@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "shared"
+path = "src/shared.rs"
+
 [dependencies]
 aoc-utils = { path = "../aoc_utils" }
 aoc-runner = { git = "https://github.com/ArmandDu/rust-aoc-runner.git" }
