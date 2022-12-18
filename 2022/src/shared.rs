@@ -110,5 +110,30 @@ pub mod geometry {
                 .cartesian_product(min.y()..=max.y())
                 .map(Point::from)
         }
+
+        pub fn circle(&self, radius: i32) -> Vec<Point<i32>> {
+            let (x, y) = self.xy();
+
+            (0..=radius)
+                .flat_map(|dx| {
+                    let dy = radius - dx;
+
+                    match (dx, dy) {
+                        (0, _) => {
+                            vec![Point::new(x, y + dy), Point::new(x, y - dy)]
+                        }
+                        (_, 0) => {
+                            vec![Point::new(x + dx, y), Point::new(x - dx, y)]
+                        }
+                        _ => vec![
+                            Point::new(x + dx, y + dy),
+                            Point::new(x + dx, y - dy),
+                            Point::new(x - dx, y - dy),
+                            Point::new(x - dx, y + dy),
+                        ],
+                    }
+                })
+                .collect()
+        }
     }
 }

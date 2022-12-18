@@ -26,22 +26,6 @@ impl<const T: usize, const A: usize> Day15<T, A> {
     fn manhattan_distance(lhs: &Point, rhs: &Point) -> i32 {
         (lhs.x().abs_diff(rhs.x()) + lhs.y().abs_diff(rhs.y())) as i32
     }
-
-    fn circle(origin: &Point, radius: i32) -> Vec<Point> {
-        (0..=radius)
-            .flat_map(|dx| {
-                let (x, y) = origin.xy();
-                let dy = radius - dx;
-
-                [
-                    Point::new(x + dx, y + dy),
-                    Point::new(x + dx, y - dy),
-                    Point::new(x - dx, y - dy),
-                    Point::new(x - dx, y + dy),
-                ]
-            })
-            .collect()
-    }
 }
 
 impl<const TARGET: usize, const AREA: usize> Solution for Day15<TARGET, AREA> {
@@ -109,7 +93,8 @@ impl<const TARGET: usize, const AREA: usize> Solution for Day15<TARGET, AREA> {
             .collect();
 
         let point = sensors.iter().find_map(|(sensor, tile)| match tile {
-            Tile::Sensor(radius) => Day15::<TARGET, AREA>::circle(sensor, radius + 1)
+            Tile::Sensor(radius) => sensor
+                .circle(radius + 1)
                 .into_par_iter()
                 .filter(|circle| {
                     let (x, y) = circle.xy();
