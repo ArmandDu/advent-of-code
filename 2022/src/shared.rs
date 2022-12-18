@@ -1,39 +1,40 @@
-use aoc::solution::SolutionError;
 use std::cmp::Ordering;
+use std::str::FromStr;
+
+use aoc::solution::SolutionError;
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq, Hash)]
-pub struct Point(usize, usize);
+pub struct Point<T>(T, T);
 
-impl Point {
-    
-    pub fn new(x: usize,y:usize) -> Self{
+impl<T: Copy> Point<T> {
+    pub fn new(x: T, y: T) -> Self {
         Self(x, y)
     }
-    
-    pub fn x(&self) -> usize {
+
+    pub fn x(&self) -> T {
         self.0
     }
-    pub fn y(&self) -> usize {
+    pub fn y(&self) -> T {
         self.1
     }
-    pub fn xy(&self) -> (usize, usize) {
+    pub fn xy(&self) -> (T, T) {
         (self.0, self.1)
     }
 }
 
-impl From<(usize, usize)> for Point {
-    fn from((x, y): (usize, usize)) -> Self {
+impl<T: Copy> From<(T, T)> for Point<T> {
+    fn from((x, y): (T, T)) -> Self {
         Self(x, y)
     }
 }
 
-impl PartialOrd<Self> for Point {
+impl<T: Copy + Ord> PartialOrd<Self> for Point<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Point {
+impl<T: Copy + Ord> Ord for Point<T> {
     ///
     /// # Examples
     /// ```
@@ -65,10 +66,10 @@ impl Ord for Point {
     }
 }
 
-impl TryFrom<&str> for Point {
-    type Error = SolutionError;
+impl<T: FromStr> FromStr for Point<T> {
+    type Err = SolutionError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use SolutionError::*;
 
         let (x, y) = value.split_once(',').ok_or(ParseError)?;
@@ -76,5 +77,38 @@ impl TryFrom<&str> for Point {
         let y = y.parse().or(Err(ParseError))?;
 
         Ok(Self(x, y))
+    }
+}
+
+pub mod geometry {
+    use std::iter::Map;
+    use std::ops::RangeInclusive;
+
+    use itertools::{Itertools, Product};
+
+    use crate::Point;
+
+    type LineIter<T> = Map<Product<RangeInclusive<T>, RangeInclusive<T>>, fn((T, T)) -> Point<T>>;
+
+    impl Point<usize> {
+        pub fn line_to(&self, other: &Self) -> LineIter<usize> {
+            let min = self.min(other);
+            let max = self.max(other);
+
+            (min.x()..=max.x())
+                .cartesian_product(min.y()..=max.y())
+                .map(Point::from)
+        }
+    }
+
+    impl Point<i32> {
+        pub fn line_to(&self, other: &Self) -> LineIter<i32> {
+            let min = self.min(other);
+            let max = self.max(other);
+
+            (min.x()..=max.x())
+                .cartesian_product(min.y()..=max.y())
+                .map(Point::from)
+        }
     }
 }

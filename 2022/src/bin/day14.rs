@@ -1,5 +1,5 @@
 use aoc::Solution;
-use itertools::{Itertools, Product};
+use itertools::Itertools;
 use std::collections::HashMap;
 use std::env;
 
@@ -7,43 +7,21 @@ use crate::cave::{Cave, Tile};
 
 use itertools::FoldWhile::{Continue, Done};
 
-use shared::Point;
-use std::iter::Map;
-use std::ops::RangeInclusive;
+use shared::Point as PointT;
+
+type Point = PointT<usize>;
 
 struct Day14;
-
-#[derive(Debug, Copy, Clone)]
-struct Line(Point, Point);
-
-impl From<(Point, Point)> for Line {
-    fn from((start, end): (Point, Point)) -> Self {
-        Self(start, end)
-    }
-}
-
-type LineIter =
-    Map<Product<RangeInclusive<usize>, RangeInclusive<usize>>, fn((usize, usize)) -> Point>;
-
-impl Line {
-    fn iter(&self) -> LineIter {
-        let Self(start, end) = self;
-        let min = start.min(end);
-        let max = start.max(end);
-
-        (min.x()..=max.x())
-            .cartesian_product(min.y()..=max.y())
-            .map(Point::from)
-    }
-}
 
 mod cave {
     use aoc::solution::SolutionError;
     use aoc_utils::dijkstra::Boundaries;
     use itertools::Itertools;
-    use shared::Point;
+    use shared::Point as PointT;
     use std::collections::HashMap;
     use std::ops::{Deref, DerefMut};
+
+    type Point = PointT<usize>;
 
     #[derive(Debug, Copy, Clone)]
     pub enum Tile {
@@ -190,10 +168,10 @@ impl Solution for Day14 {
             .lines()
             .flat_map(|line| {
                 line.split(" -> ")
-                    .filter_map(|point| Point::try_from(point).ok())
-                    .tuple_windows::<(_, _)>()
+                    .filter_map(|point| point.parse().ok())
+                    .tuple_windows::<(Point, _)>()
             })
-            .flat_map(|line| Line::from(line).iter().map(|point| (point, Tile::Rock)))
+            .flat_map(|(p1, p2)| p1.line_to(&p2).map(|point| (point, Tile::Rock)))
             .collect())
     }
 
