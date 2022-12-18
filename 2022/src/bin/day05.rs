@@ -1,5 +1,6 @@
 use aoc::solution::SolutionError;
 use aoc::Solution;
+use itertools::Itertools;
 use std::collections::VecDeque;
 
 struct Day05;
@@ -13,13 +14,16 @@ impl Solution for Day05 {
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
         //skip first character as it's manually added for fixing the "trim" issue.
-        let (stacks, instructions) = &input[1..]
-            .split_once("\n\n")
+        let input = input[1..].lines().collect::<Vec<_>>();
+
+        let (stacks, instructions) = input
+            .split(|line| line.is_empty())
+            .collect_tuple::<(_, _)>()
             .ok_or(SolutionError::ParseError)?;
 
         let transposed_stacks = {
             let mut stacks = stacks
-                .lines()
+                .iter()
                 .map(|line| {
                     line.chars()
                         .collect::<Vec<_>>()
@@ -49,7 +53,7 @@ impl Solution for Day05 {
         });
 
         let instructions: Vec<_> = instructions
-            .lines()
+            .iter()
             .map(|line| {
                 let words: Vec<_> = line
                     .split(' ')
