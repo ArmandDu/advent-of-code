@@ -123,7 +123,7 @@ impl Solution for Day22 {
             instructions,
             &mut path,
         );
-        is_verbose().then(|| println!("{}", Render::new(jungle, &path)));
+        is_print().then(|| println!("{}", Render::new(jungle, &path)));
 
         score
     }
@@ -133,8 +133,12 @@ impl Solution for Day22 {
     }
 }
 
-fn is_verbose() -> bool {
-    std::env::args().any(|arg| arg.as_str() == "--print")
+fn is_print() -> bool {
+    is_flag("--print")
+}
+
+fn is_flag(flag: &str) -> bool {
+    std::env::args().any(|arg| arg.as_str() == flag)
 }
 
 fn main() {

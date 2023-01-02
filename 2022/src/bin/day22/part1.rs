@@ -1,7 +1,8 @@
+use itertools::Itertools;
+
 use crate::dir::Dir;
 use crate::jungle::{Jungle, Navigate};
 use crate::{index, Tile};
-use itertools::Itertools;
 
 pub struct SphereJungle<'a> {
     jungle: &'a Jungle,
@@ -11,27 +12,27 @@ pub struct SphereJungle<'a> {
 
 impl<'a> SphereJungle<'a> {
     pub fn new(jungle: &'a Jungle) -> Self {
+        let step = jungle.boundaries.width.max(jungle.boundaries.height) / 4;
+
         let x_ranges = (0..jungle.boundaries.height)
             .filter_map(|y| {
-                jungle
-                    .iter()
-                    .filter(|(coord, _)| coord.1 == y)
-                    .map(|(coord, _)| coord.0)
+                (0..jungle.boundaries.width)
+                    .step_by(step)
+                    .filter(|x| jungle.get(&(*x, y)).is_some())
                     .minmax()
                     .into_option()
-                    .map(|(min, max)| (min, max + 1))
+                    .map(|(min, max)| (min, max + step))
             })
             .collect_vec();
 
         let y_ranges = (0..jungle.boundaries.width)
             .filter_map(|x| {
-                jungle
-                    .iter()
-                    .filter(|(coord, _)| coord.0 == x)
-                    .map(|(coord, _)| coord.1)
+                (0..jungle.boundaries.height)
+                    .step_by(step)
+                    .filter(|y| jungle.get(&(x, *y)).is_some())
                     .minmax()
                     .into_option()
-                    .map(|(min, max)| (min, max + 1))
+                    .map(|(min, max)| (min, max + step))
             })
             .collect_vec();
 

@@ -1,12 +1,14 @@
-use crate::dir::Dir;
-use crate::Tile;
-use aoc::solution::SolutionError;
-use aoc_utils::dijkstra::Boundaries;
-use itertools::Itertools;
-use std::collections::hash_map::Iter;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+
+use aoc::solution::SolutionError;
+use itertools::Itertools;
+
+use aoc_utils::dijkstra::Boundaries;
+
+use crate::dir::Dir;
+use crate::Tile;
 
 pub trait Navigate {
     fn get(&self, current: (usize, usize), dir: Dir) -> Option<&Tile>;
@@ -20,23 +22,17 @@ pub struct Jungle {
 }
 
 impl Jungle {
-    pub fn iter(&self) -> Iter<'_, (usize, usize), Tile> {
-        self.grid.iter()
-    }
-
     pub fn get(&self, coord: &(usize, usize)) -> Option<&Tile> {
         self.grid.get(coord)
     }
 
     pub fn top_left(&self) -> Option<(usize, usize)> {
-        Some((
-            self.grid
-                .keys()
-                .filter(|(_, y)| y == &0)
-                .map(|(x, _)| *x)
-                .min()?,
-            0,
-        ))
+        let step = self.boundaries.width.max(self.boundaries.height) / 4;
+
+        (0..self.boundaries.width)
+            .step_by(step)
+            .find(|x| self.grid.contains_key(&(*x, 0)))
+            .map(|x| (x, 0))
     }
 }
 
@@ -79,7 +75,6 @@ impl FromStr for Jungle {
 pub struct Render<'a>(&'a Jungle, &'a HashMap<(usize, usize), Dir>);
 
 impl<'a> Render<'a> {
-    #[allow(unused)]
     pub fn new(jungle: &'a Jungle, path: &'a HashMap<(usize, usize), Dir>) -> Render<'a> {
         Self(jungle, path)
     }
