@@ -13,8 +13,7 @@ impl Solution for Day05 {
     type P2 = String;
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
-        //skip first character as it's manually added for fixing the "trim" issue.
-        let input = input[1..].lines().collect::<Vec<_>>();
+        let input = input.lines().collect::<Vec<_>>();
 
         let (stacks, instructions) = input
             .split(|line| line.is_empty())
@@ -114,15 +113,6 @@ impl Solution for Day05 {
                 .collect::<String>(),
         )
     }
-
-    fn get_input() -> aoc::solution::Result<String> {
-        let path = format!("inputs/DAY_{:02}.txt", Self::DAY);
-        let input = std::fs::read_to_string(&path)?;
-
-        //my aoc-runner library trims the input automatically. In this exercise it becomes a bug.
-        //so I add a token here to void the trim
-        Ok(format!("!{}", input))
-    }
 }
 
 fn main() {
@@ -137,7 +127,7 @@ mod tests {
 
     aoc::test! {
         day_05:
-        - "!    [D]    \n[N] [C]    \n[Z] [M] [P]\n 1   2   3 \n\nmove 1 from 2 to 1\nmove 3 from 1 to 3\nmove 2 from 2 to 1\nmove 1 from 1 to 2\n"
+        - "    [D]    \n[N] [C]    \n[Z] [M] [P]\n 1   2   3 \n\nmove 1 from 2 to 1\nmove 3 from 1 to 3\nmove 2 from 2 to 1\nmove 1 from 1 to 2\n"
             => Some("CMZ".to_owned())
             => Some("MCD".to_owned())
     }
