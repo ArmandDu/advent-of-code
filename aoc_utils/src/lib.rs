@@ -1,3 +1,5 @@
+pub mod pathfinding;
+
 pub fn lines_to_owned(input: &str) -> Vec<String> {
     input.lines().map(|line| line.to_owned()).collect()
 }
@@ -103,78 +105,5 @@ pub mod dijkstra {
         }
         path.push(*start);
         path.into_iter().rev().collect()
-    }
-}
-
-pub mod pathfinding {
-    use std::collections::{HashMap, VecDeque};
-    use std::hash::Hash;
-
-    pub fn bfs<N, IT>(
-        start: &N,
-        adjacent: impl Fn(&N) -> IT,
-        is_target: impl Fn(&N) -> bool,
-    ) -> Option<Vec<N>>
-    where
-        N: Copy + Hash + Eq,
-        IT: Iterator<Item = N>,
-    {
-        let mut history = HashMap::new();
-        let mut queue = VecDeque::new();
-
-        queue.push_back(*start);
-        history.insert(*start, None);
-
-        while let Some(current) = queue.pop_front() {
-            if is_target(&current) {
-                return get_path(&history, start, current);
-            }
-            for next in adjacent(&current) {
-                if history.contains_key(&next) {
-                    continue;
-                }
-
-                history.insert(next, Some(current));
-                queue.push_back(next);
-            }
-        }
-
-        None
-    }
-
-    fn get_path<N>(history: &HashMap<N, Option<N>>, start: &N, mut target: N) -> Option<Vec<N>>
-    where
-        N: Copy + Hash + Eq,
-    {
-        let mut path = vec![target];
-
-        while let Some(Some(parent)) = history.get(&target) {
-            path.push(*parent);
-            target = *parent;
-
-            if start == parent {
-                return Some(path.into_iter().rev().collect());
-            }
-        }
-        None
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::pathfinding::*;
-
-    #[test]
-    fn bfs_simple() {
-        let start = 'A';
-        let goal = 'Z';
-
-        let path = bfs(
-            &start,
-            |&point| [(point as u8 + 1) as char].into_iter(),
-            |&n| n == goal,
-        );
-
-        assert_eq!(path.expect("path not found").len(), 26);
     }
 }
