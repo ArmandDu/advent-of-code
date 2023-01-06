@@ -1,7 +1,7 @@
 use aoc::Solution;
 
 use crate::valley::Valley;
-use aoc_utils::pathfinding::bfs;
+use aoc_utils::pathfinding::{bfs, Graph};
 
 struct Day24;
 
@@ -165,7 +165,7 @@ impl Expedition<'_> {
     }
 }
 
-impl bfs::Graph<(i32, i32, i32)> for Expedition<'_> {
+impl Graph<(i32, i32, i32)> for Expedition<'_> {
     fn start(&self) -> Option<(i32, i32, i32)> {
         Some(self.start)
     }
@@ -219,10 +219,10 @@ impl Solution for Day24 {
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
         let expedition = Expedition::new(input, input.entrance(), input.exit(), 0);
-        let path = bfs::solve(&expedition)?;
+        let ((_, _, time), path) = bfs::solve(&expedition)?;
 
         is_print().then(|| {
-            path.iter().for_each(|(x, y, z)| {
+            path().unwrap_or_default().iter().for_each(|(x, y, z)| {
                 println!(
                     "{}\n{:?}\n",
                     input.to_string(*z as usize, Some((*x as usize, *y as usize))),
@@ -231,7 +231,7 @@ impl Solution for Day24 {
             })
         });
 
-        Some(path.len() - 1)
+        Some(time as usize)
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
@@ -239,17 +239,15 @@ impl Solution for Day24 {
         let exit = input.exit();
 
         (0..3).fold(Some(0), |time, count| {
-            let time = time? as i32;
-
             let (start, exit) = match count % 2 == 0 {
                 true => (start, exit),
                 _ => (exit, start),
             };
 
-            let expedition = Expedition::new(input, start, exit, time);
+            let expedition = Expedition::new(input, start, exit, time? as i32);
             let path = bfs::solve(&expedition);
 
-            path.map(|path| path.len() - 1 + time as usize)
+            path.map(|((_, _, time), _)| time as usize)
         })
     }
 }
