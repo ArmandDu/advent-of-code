@@ -1,36 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display, Formatter};
-use std::hash::{Hash, Hasher};
-
-use std::str::FromStr;
 
 use aoc::solution::SolutionError;
 use aoc::Solution;
-use itertools::{EitherOrBoth, Itertools};
+use itertools::Itertools;
 
 type Point = (i64, i64);
 
 struct Day17;
 
 #[derive(Debug, Clone)]
-struct Shape(HashSet<Point>);
-
-impl Hash for Shape {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.iter().for_each(|c| c.hash(state));
-    }
-}
-
-impl PartialEq<Self> for Shape {
-    fn eq(&self, other: &Self) -> bool {
-        self.iter().zip_longest(other.iter()).all(|zip| match zip {
-            EitherOrBoth::Both(a, b) => a == b,
-            _ => false,
-        })
-    }
-}
-
-impl Eq for Shape {}
+struct Shape(&'static [Point]);
 
 impl Display for Shape {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -43,9 +23,9 @@ impl Display for Shape {
             (bound_y.0..=bound_y.1)
                 .rev()
                 .map(|y| (bound_x.0..=bound_x.1)
-                    .map(|x| match self.0.get(&(x, y)) {
-                        Some(_) => "#",
-                        None => " ",
+                    .map(|x| match self.0.contains(&(x, y)) {
+                        true => "#",
+                        _ => " ",
                     })
                     .join(""))
                 .join("\n")
@@ -55,57 +35,28 @@ impl Display for Shape {
 
 impl Shape {
     fn h_line() -> Self {
-        "####".parse().unwrap()
+        Self(&[(0, 0), (1, 0), (2, 0), (3, 0)])
     }
     fn v_line() -> Self {
-        "#\n#\n#\n#".parse().unwrap()
+        Self(&[(0, 0), (0, 1), (0, 2), (0, 3)])
     }
 
     fn cross() -> Self {
-        ".#.\n###\n.#.".parse().unwrap()
+        Self(&[(0, 1), (1, 0), (1, 1), (1, 2), (2, 1)])
     }
 
     fn rev_l() -> Self {
-        "###\n..#\n..#".parse().unwrap()
+        Self(&[(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)])
     }
 
     fn square() -> Self {
-        "##\n##".parse().unwrap()
+        Self(&[(0, 0), (1, 0), (0, 1), (1, 1)])
     }
 }
 
 impl Shape {
     fn iter(&self) -> impl Iterator<Item = &Point> {
         self.0.iter()
-    }
-
-    fn shift(&mut self, (x, y): Point) {
-        self.0 = self
-            .0
-            .iter()
-            .map(|dot| {
-                let mut dot = *dot;
-                dot.0 += x;
-                dot.1 += y;
-
-                dot
-            })
-            .collect();
-    }
-}
-
-impl FromStr for Shape {
-    type Err = SolutionError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(HashSet::from_iter(s.lines().enumerate().flat_map(
-            |(y, line)| {
-                line.chars().enumerate().filter_map(move |(x, c)| match c {
-                    '#' => Some((x as i64, y as i64)),
-                    _ => None,
-                })
-            },
-        ))))
     }
 }
 
@@ -125,8 +76,8 @@ impl Day17 {
                             match cache.get(&p) {
                                 Some(_) => "#",
                                 _ => match shape {
-                                    Some(s) => match s.0.get(&p) {
-                                        Some(_) => "@",
+                                    Some(s) => match s.0.contains(&p) {
+                                        true => "@",
                                         _ => ".",
                                     },
                                     _ => ".",
@@ -142,56 +93,109 @@ impl Day17 {
 }
 
 impl Day17 {
-    fn can_move(shape: &Shape, map: &HashSet<Point>, offset: Point) -> bool {
-        shape.iter().cloned().all(|mut point| {
-            point.0 += offset.0;
-            point.1 += offset.1;
+    fn can_move(pos: &(i64, i64), shape: &Shape, map: &HashSet<Point>, offset: Point) -> bool {
+        shape.iter().all(|point| {
+            let next_x = point.0 + pos.0 + offset.0;
+            let next_y = point.1 + pos.1 + offset.1;
 
-            !map.contains(&point) && point.1 >= 0 && point.0 >= 0 && point.0 < 7
+            !map.contains(&(next_x, next_y)) && next_y >= 0 && (0..7).contains(&next_x)
         })
     }
 
-    fn try_move(shape: &mut Shape, map: &HashSet<Point>, offset: impl Into<Point>) {
+    fn try_move(
+        pos: &mut (i64, i64),
+        shape: &Shape,
+        map: &HashSet<Point>,
+        offset: impl Into<Point>,
+    ) {
         let offset = offset.into();
 
-        if Self::can_move(shape, map, offset) {
-            shape.shift(offset)
+        if Self::can_move(pos, shape, map, offset) {
+            pos.0 += offset.0;
+            pos.1 += offset.1;
         }
     }
 
     fn fall(
-        mut shape: Shape,
-        mut cache: HashSet<Point>,
-        mut height: usize,
+        shape: &Shape,
+        cache: &mut HashSet<Point>,
+        height: &mut usize,
         mut move_factory: impl FnMut() -> i64,
-    ) -> (HashSet<Point>, usize) {
-        shape.shift((2, (height as i64) + 3));
+    ) {
+        let mut pos = (2, *height as i64 + 3);
 
         let mut is_first = true;
-        while Day17::can_move(&shape, &cache, (0, -1)) {
+        while Day17::can_move(&pos, shape, cache, (0, -1)) {
             if is_first {
                 is_first = false
             } else {
-                Day17::try_move(&mut shape, &cache, (0, -1));
+                Day17::try_move(&mut pos, shape, cache, (0, -1));
             }
 
             let shift = move_factory();
-            Day17::try_move(&mut shape, &cache, (shift, 0));
+            Day17::try_move(&mut pos, shape, cache, (shift, 0));
         }
 
         shape.iter().for_each(|point| {
-            cache.insert(*point);
-            height = height.max((point.1 + 1) as usize);
-        });
+            let point = (point.0 + pos.0, point.1 + pos.1);
 
-        (cache, height)
+            cache.insert(point);
+            *height = (*height).max((point.1 + 1) as usize);
+        });
+    }
+
+    fn solve(target: usize, shapes: &[Shape], moves: &[i64]) -> Option<usize> {
+        let mut moves_pos = 0;
+        let mut count = 0;
+
+        let mut height = 0;
+        let mut cache = HashSet::new();
+        let mut cycle = HashMap::new();
+        let mut cycle_height = 0;
+
+        while count < target {
+            let shape = &shapes[count % shapes.len()];
+            Day17::fall(shape, &mut cache, &mut height, || {
+                let offset = moves[moves_pos];
+
+                moves_pos = (moves_pos + 1) % moves.len();
+                offset
+            });
+
+            // Check for Cycle
+            if cycle_height == 0 {
+                let cycle_key = (count % shapes.len(), moves_pos);
+
+                if let Some((2, prev_height, prev_count)) = cycle.get(&cycle_key) {
+                    let delta_height = height - prev_height;
+                    let delta_count = count - prev_count;
+                    let repeats = (target - count) / delta_count;
+
+                    cycle_height = delta_height * repeats;
+                    count += delta_count * repeats;
+                }
+
+                cycle
+                    .entry(cycle_key)
+                    .and_modify(|(cycle, prev_height, prev_count)| {
+                        *cycle += 1;
+                        *prev_count = count;
+                        *prev_height = height;
+                    })
+                    .or_insert((1_usize, height, count));
+            }
+
+            count += 1;
+        }
+
+        Some(height + cycle_height)
     }
 }
 
 impl Solution for Day17 {
     const TITLE: &'static str = "Pyroclastic Flow";
     const DAY: u8 = 17;
-    type Input = (Vec<Shape>, Vec<i64>);
+    type Input = ([Shape; 5], Vec<i64>);
     type P1 = usize;
     type P2 = usize;
 
@@ -206,7 +210,7 @@ impl Solution for Day17 {
             })
             .collect::<Result<Vec<_>, SolutionError>>()?;
 
-        let shapes = vec![
+        let shapes = [
             Shape::h_line(),
             Shape::cross(),
             Shape::rev_l(),
@@ -218,24 +222,15 @@ impl Solution for Day17 {
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        const COUNT: usize = 2022;
-
         let (shapes, moves) = input;
-        let shape_factory = shapes.iter().cycle();
-        let mut moves_iter = moves.iter().cycle();
 
-        let (_grid, height) = shape_factory.take(COUNT).cloned().fold(
-            (HashSet::new(), 0),
-            |(cache, height), shape| {
-                Day17::fall(shape, cache, height, || *moves_iter.next().unwrap())
-            },
-        );
-
-        Some(height)
+        Day17::solve(2022, shapes, moves)
     }
 
-    fn part2(_input: &Self::Input) -> Option<Self::P2> {
-        None
+    fn part2(input: &Self::Input) -> Option<Self::P2> {
+        let (shapes, moves) = input;
+
+        Day17::solve(1_000_000_000_000, shapes, moves)
     }
 }
 
