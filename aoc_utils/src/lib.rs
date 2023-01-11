@@ -1,5 +1,9 @@
 pub mod pathfinding;
 
+pub fn is_flag(flag: &str) -> bool {
+    std::env::args().any(|arg| arg.as_str() == flag)
+}
+
 pub fn lines_to_owned(input: &str) -> Vec<String> {
     input.lines().map(|line| line.to_owned()).collect()
 }
