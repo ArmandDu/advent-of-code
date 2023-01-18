@@ -1,8 +1,9 @@
+use aoc_utils::index;
 use itertools::Itertools;
 
 use crate::dir::Dir;
 use crate::jungle::{Jungle, Navigate};
-use crate::{index, Tile};
+use crate::Tile;
 
 pub struct SphereJungle<'a> {
     jungle: &'a Jungle,

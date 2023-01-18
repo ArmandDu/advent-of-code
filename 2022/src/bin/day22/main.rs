@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use aoc::solution::SolutionError;
 use aoc::Solution;
+use aoc_utils::is_flag;
 use itertools::Itertools;
 use regex::Regex;
 
@@ -15,12 +16,6 @@ use crate::part1::SphereJungle;
 mod dir;
 mod jungle;
 mod part1;
-
-pub fn index(value: isize, min: isize, max: isize) -> usize {
-    let size_y = max.abs_diff(min) as isize;
-
-    (min + (max + (value % size_y)) % size_y) as usize
-}
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Tile {
@@ -104,8 +99,8 @@ impl Solution for Day22 {
             .ok_or(SolutionError::ParseError)?;
 
         let instructions = re
-            .captures_iter(&instructions.join(""))
-            .map(|captures| captures.get(1).map_or("", |m| m.as_str()).parse())
+            .find_iter(&instructions.join(""))
+            .map(|m| m.as_str().parse())
             .collect::<Result<_, _>>()?;
 
         let jungle = Jungle::from_str(&grid.join("\n"))?;
@@ -135,10 +130,6 @@ impl Solution for Day22 {
 
 fn is_print() -> bool {
     is_flag("--print")
-}
-
-fn is_flag(flag: &str) -> bool {
-    std::env::args().any(|arg| arg.as_str() == flag)
 }
 
 fn main() {
