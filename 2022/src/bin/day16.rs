@@ -156,17 +156,26 @@ impl Cave {
         self.valves.get(node.index())
     }
 
+    fn max_possible_earnings(&self, remaining: &[Node], remaining_time: usize) -> usize {
+        remaining
+            .iter()
+            .map(|node| node.rate())
+            .sorted_by(|a, b| b.cmp(a))
+            .zip((3..=remaining_time).rev().step_by(2))
+            .fold(0, |earnings, (rate, time)| earnings + rate * (time - 2))
+    }
+
     fn solve<F>(&self, initial_budget: usize, filter_hist: F) -> Vec<(Vec<Node>, usize)>
     where
         F: Fn(&[Node], &usize) -> bool,
     {
-        let _max_score = self.graph.iter().map(|c| c.rate()).sum::<usize>() * initial_budget;
+        let mut best = 0;
         let mut queue = BinaryHeap::new();
         let mut paths = vec![];
         let start = self.start;
-        let graph = self.graph.iter().cloned().collect_vec();
+        let remaining = self.graph.iter().cloned().collect_vec();
 
-        queue.push((0, initial_budget, start, graph, vec![]));
+        queue.push((0, initial_budget, start, remaining, vec![]));
 
         while let Some((earnings, budget, current, graph, hist)) = queue.pop() {
             for next in &graph {
@@ -189,9 +198,11 @@ impl Cave {
 
                 if filter_hist(&remaining_graph, &remaining_budget) {
                     paths.push((next_hist.to_owned(), earnings));
+                    best = best.max(earnings);
                 }
 
-                if !remaining_graph.is_empty() && remaining_budget > 2 {
+                if earnings + self.max_possible_earnings(&remaining_graph, remaining_budget) > best
+                {
                     queue.push((
                         earnings,
                         remaining_budget,
@@ -265,8 +276,7 @@ impl Solution for Day16 {
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        let take_only_leafs =
-            |graph: &'_ [Node], budget: &'_ usize| graph.is_empty() || budget <= &2;
+        let take_only_leafs = |graph: &[Node], budget: &usize| graph.is_empty() || budget <= &2;
 
         is_print().then(|| input.print_matrix());
         is_flag("--valves").then(|| {
@@ -281,7 +291,7 @@ impl Solution for Day16 {
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        let take_incomplete_only = |remaining: &'_ [Node], _: &'_ usize| !remaining.is_empty();
+        let take_incomplete_only = &|remaining: &[Node], _: &usize| !remaining.is_empty();
 
         let paths = input.solve(26, take_incomplete_only);
 
