@@ -2,17 +2,58 @@ use aoc::Solution;
 use itertools::Itertools;
 use regex::Regex;
 
+enum Code {
+    Digit(u32),
+    Word(u32),
+}
+
+impl TryFrom<&str> for Code {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "one" => Ok(Code::Word(1)),
+            "two" => Ok(Code::Word(2)),
+            "three" => Ok(Code::Word(3)),
+            "four" => Ok(Code::Word(4)),
+            "five" => Ok(Code::Word(5)),
+            "six" => Ok(Code::Word(6)),
+            "seven" => Ok(Code::Word(7)),
+            "eight" => Ok(Code::Word(8)),
+            "nine" => Ok(Code::Word(9)),
+            token => token.parse().map(Code::Digit).map_err(|_| ()),
+        }
+    }
+}
+
 struct Day01;
+
+impl Day01 {
+    fn list_to_number(list: Vec<&u32>) -> Option<u32> {
+        let first = list.first().map(|&x| x * 10)?;
+
+        list.last().map(|&last| first + last)
+    }
+}
 
 impl Solution for Day01 {
     const TITLE: &'static str = "Trebuchet?!";
     const DAY: u8 = 1;
-    type Input = Vec<String>;
+    type Input = Vec<Vec<Code>>;
     type P1 = u32;
     type P2 = u32;
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
-        let list = input.lines().map(|line| line.to_owned()).collect();
+        let re = Regex::new(r"([0-9]|one|two|three|four|five|six|seven|eight|nine)").unwrap();
+
+        let list = input
+            .lines()
+            .map(|line| {
+                re.captures_iter(line)
+                    .filter_map(|captures| Code::try_from(captures.extract::<1>().0).ok())
+                    .collect_vec()
+            })
+            .collect();
 
         Ok(list)
     }
@@ -21,49 +62,32 @@ impl Solution for Day01 {
         Some(
             input
                 .iter()
-                .map(|line| {
-                    line.chars()
-                        .filter_map(|line| line.to_digit(10))
+                .map(|list| {
+                    list.iter()
+                        .filter_map(|code| match code {
+                            Code::Digit(x) => Some(x),
+                            _ => None,
+                        })
                         .collect::<Vec<_>>()
                 })
-                .filter_map(|line| {
-                    let first = line.first()?.to_owned();
-                    let last = line.last()?.to_owned();
-
-                    Some(first * 10 + last)
-                })
+                .filter_map(Day01::list_to_number)
                 .sum(),
         )
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        let re = Regex::new(r"([0-9]|one|two|three|four|five|six|seven|eight|nine)").unwrap();
-
         Some(
             input
                 .iter()
-                .map(|line| {
-                    re.captures_iter(line)
-                        .filter_map(|c| match c.extract() {
-                            (_, [x]) if x == "1" || x == "one" => Some(1),
-                            (_, [x]) if x == "2" || x == "two" => Some(2),
-                            (_, [x]) if x == "3" || x == "three" => Some(3),
-                            (_, [x]) if x == "4" || x == "four" => Some(4),
-                            (_, [x]) if x == "5" || x == "five" => Some(5),
-                            (_, [x]) if x == "6" || x == "six" => Some(6),
-                            (_, [x]) if x == "7" || x == "seven" => Some(7),
-                            (_, [x]) if x == "8" || x == "eight" => Some(8),
-                            (_, [x]) if x == "9" || x == "nine" => Some(9),
-                            (_, _) => None,
+                .map(|list| {
+                    list.iter()
+                        .map(|code| match code {
+                            Code::Digit(x) => x,
+                            Code::Word(x) => x,
                         })
                         .collect_vec()
                 })
-                .filter_map(|line| {
-                    let first = line.first()?.to_owned();
-                    let last = line.last()?.to_owned();
-
-                    Some(first * 10 + last)
-                })
+                .filter_map(Day01::list_to_number)
                 .sum(),
         )
     }
