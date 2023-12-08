@@ -29,8 +29,8 @@ dependencies = [
 
 [[package]]
 name = "aoc-runner"
-version = "0.1.0"
-source = "git+https://github.com/ArmandDu/rust-aoc-runner.git#10c24cb605a89fc865d8849df44594bb5374d53e"
+version = "1.1.0"
+source = "git+https://github.com/ArmandDu/rust-aoc-runner.git?tag=v1.1.0#23b3e14f3820a80b45f6a4e48485375af19d0257"
 dependencies = [
  "concat-idents",
  "crossbeam-utils",
