@@ -54,8 +54,8 @@ impl Solution for Day06 {
         input
             .0
             .iter()
-            .filter_map(|(time, distance)| Puzzle::get_bounds(*time, *distance))
-            .product1()
+            .map(|(time, distance)| Puzzle::get_bounds(*time, *distance))
+            .product()
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
