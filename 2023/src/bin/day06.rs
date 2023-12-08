@@ -11,7 +11,7 @@ struct Puzzle(Vec<(usize, usize)>);
 impl Puzzle {
     fn get_bounds(time: usize, distance: usize) -> Option<usize> {
         let min = (1..time).find(|ms| ms * (time - ms) > distance)?;
-        let max = (1..time).rev().find(|ms| ms * (time - ms) > distance)?;
+        let max = (1..time).rfind(|ms| ms * (time - ms) > distance)?;
 
         Some(max - min + 1)
     }
