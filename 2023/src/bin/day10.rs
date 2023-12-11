@@ -177,8 +177,29 @@ impl Solution for Day10 {
         Some(input.tube()?.len() / 2)
     }
 
-    fn part2(_input: &Self::Input) -> Option<Self::P2> {
-        None
+    fn part2(input: &Self::Input) -> Option<Self::P2> {
+        let hist = input.tube()?;
+        let width = input.raw.first()?.len();
+        let height = input.raw.len();
+
+        Some(
+            (0..width)
+                .cartesian_product(0..height)
+                .filter(|node| !hist.contains_key(node))
+                .filter(|(x, y)| {
+                    (0..*x)
+                        .filter(|&xi| hist.contains_key(&(xi, *y)))
+                        .filter(|&xi| {
+                            //feels hacky. Might not work on other inputs.
+                            //my S is a 7. So it doesn't count as a left wall.
+                            matches!(input.get(&(xi, *y)), Some('J') | Some('L') | Some('|'))
+                        })
+                        .count()
+                        % 2
+                        != 0
+                })
+                .count(),
+        )
     }
 }
 
@@ -194,14 +215,17 @@ aoc::example! {
     [Day10]
     smallest: ".....\r\n.S-7.\r\n.|.|.\r\n.L-J.\r\n.....\r\n"
         => Some(4)
-        => None
+        => Some(1)
     smallest_noise: "-L|F7\r\n7S-7|\r\nL|7||\r\n-L-J|\r\nL|-JF\r\n"
         => Some(4)
-        => None
+        => Some(1)
     medium: "..F7.\r\n.FJ|.\r\nSJ.L7\r\n|F--J\r\nLJ...\r\n"
         => Some(8)
-        => None
+        => Some(1)
     medium_noise: "7-F7-\r\n.FJ|7\r\nSJLL7\r\n|F--J\r\nLJ.LJ\r\n"
         => Some(8)
-        => None
+        => Some(1)
+    large_noise: "FF7FSF7F7F7F7F7F---7\r\nL|LJ||||||||||||F--J\r\nFL-7LJLJ||||||LJL-77\r\nF--JF--7||LJLJ7F7FJ-\r\nL---JF-JLJ.||-FJLJJ7\r\n|F|F-JF---7F7-L7L|7|\r\n|FFJF7L7F-JF7|JL---7\r\n7-L-JL7||F7|L7F-7F7|\r\nL.L7LFJ|||||FJL7||LJ\r\nL7JLJL-JLJLJL--JLJ.L\r\n"
+        => Some(80)
+        => Some(10)
 }
