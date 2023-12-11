@@ -182,24 +182,24 @@ impl Solution for Day10 {
         let width = input.raw.first()?.len();
         let height = input.raw.len();
 
-        Some(
-            (0..width)
-                .cartesian_product(0..height)
-                .filter(|node| !hist.contains_key(node))
-                .filter(|(x, y)| {
-                    (0..*x)
-                        .filter(|&xi| hist.contains_key(&(xi, *y)))
-                        .filter(|&xi| {
-                            //feels hacky. Might not work on other inputs.
-                            //my S is a 7. So it doesn't count as a left wall.
-                            matches!(input.get(&(xi, *y)), Some('J') | Some('L') | Some('|'))
-                        })
-                        .count()
-                        % 2
-                        != 0
-                })
-                .count(),
-        )
+        (0..height)
+            .map(|y| {
+                (0..width)
+                    .fold((false, 0), |(is_inside, count), x| {
+                        if hist.contains_key(&(x, y)) {
+                            //Might not work on other inputs.
+                            //Need to count S if it's a J,L ior |. (it's a 7 in my input, so it works)
+                            match input.get(&(x, y)) {
+                                Some('J') | Some('L') | Some('|') => (!is_inside, count),
+                                _ => (is_inside, count),
+                            }
+                        } else {
+                            (is_inside, count + is_inside as usize)
+                        }
+                    })
+                    .1
+            })
+            .sum1()
     }
 }
 
