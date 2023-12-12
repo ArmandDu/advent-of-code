@@ -1,76 +1,57 @@
 use aoc::solution::SolutionError;
 use aoc::Solution;
 use itertools::Itertools;
-use std::collections::VecDeque;
+use memoize::memoize;
+use rayon::prelude::*;
 use std::str::FromStr;
 
 #[derive(Debug)]
 struct SpringRecord(Vec<(String, Vec<usize>)>);
 
-impl SpringRecord {
-    fn counts(record: &str) -> Vec<usize> {
+#[memoize]
+fn solve(record: Vec<char>, validator: Vec<usize>) -> usize {
+    //all other checks passed. Now checking that the remaining is also empty.
+    if validator.is_empty() {
+        return record.iter().all(|&c| c != '#').into();
+    }
+
+    //still '#' to find but not enough space left
+    if record.len() < validator.iter().sum::<usize>() + validator.len() - 1 {
+        return 0;
+    }
+
+    //skip until next non '.'
+    if let Some('.') = record.first() {
+        return solve(record[1..].to_vec(), validator);
+    }
+
+    //record.first is '?' or '#'
+
+    let n_valid = {
+        // check if token is valid. It's valid if validator.count first tokens are '?' or '#' and count+1 is '.' or '?'
+        let count = validator.first().copied().unwrap();
+        let is_valid = record[..count].iter().all(|&c| c != '.');
+        let next_is_valid = record.get(count).map(|&c| c != '#').unwrap_or(true);
+
+        (is_valid && next_is_valid)
+            .then(|| {
+                solve(
+                    record[(count + 1).min(record.len())..].to_vec(),
+                    validator[1..].to_vec(),
+                )
+            })
+            .unwrap_or_default()
+    } + {
+        // if current token is '?' try marking it as '.' by skipping the token.
         record
-            .chars()
-            .group_by(|&c| c == '#')
-            .into_iter()
-            .filter_map(|(in_group, group)| in_group.then_some(group.count()))
-            .collect_vec()
-    }
+            .first()
+            .filter(|&&c| c == '?')
+            .map(|_| solve(record[1..].to_vec(), validator))
+            .unwrap_or_default()
+    };
 
-    fn is_valid(record: &str, validator: &[usize]) -> bool {
-        Self::counts(record) == validator
-    }
-
-    fn next_index(record: &[char]) -> usize {
-        record
-            .iter()
-            .find_position(|&c| c == &'?')
-            .map(|(p, _)| p)
-            .unwrap_or(record.len())
-    }
-
-    fn solve(record: &str, validator: &[usize]) -> Option<Vec<String>> {
-        let mut history = Vec::new();
-        let mut queue = VecDeque::new();
-
-        if Self::is_valid(record, validator) {
-            return Some(vec![record.to_owned()]);
-        }
-
-        let record = record.chars().collect_vec();
-        let start = Self::next_index(&record);
-
-        queue.push_back((start, record));
-
-        while let Some((index, current)) = queue.pop_front() {
-            let current_string = current.iter().collect::<String>();
-
-            if Self::is_valid(&current_string, validator) {
-                history.push(current_string.replace('?', "."));
-                continue;
-            }
-
-            if index >= current.len() {
-                continue;
-            }
-
-            for c in ['.', '#'] {
-                let mut copy = current.to_owned();
-                let elem = copy.get_mut(index)?;
-
-                *elem = c;
-
-                let next = Self::next_index(&copy);
-
-                // TODO find out how to prune invalid branches
-                queue.push_back((next, copy))
-            }
-        }
-
-        Some(history)
-    }
+    n_valid
 }
-
 impl FromStr for SpringRecord {
     type Err = SolutionError;
 
@@ -109,23 +90,24 @@ impl Solution for Day12 {
         input
             .0
             .iter()
-            .filter_map(|(record, val)| SpringRecord::solve(record, val))
-            .map(|hist| hist.len())
+            .map(|(record, val)| solve(record.chars().collect(), val.to_vec()))
             .sum1()
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        let _ = input.0.iter().map(|(record, val)| {
-            (
-                std::iter::repeat(record).take(5).join(""),
-                std::iter::repeat(val.to_owned())
-                    .take(5)
-                    .flatten()
-                    .collect_vec(),
-            )
-        });
-
-        None
+        Some(
+            input
+                .0
+                .par_iter()
+                .map(|(record, val)| {
+                    (
+                        (0..5).map(|_| record).join("?").chars().collect_vec(),
+                        (0..5).flat_map(|_| val).copied().collect_vec(),
+                    )
+                })
+                .map(|(record, val)| solve(record, val))
+                .sum(),
+        )
     }
 }
 
@@ -135,5 +117,5 @@ aoc::example! {
     [Day12]
     small: "???.### 1,1,3\r\n.??..??...?##. 1,1,3\r\n?#?#?#?#?#?#?#? 1,3,1,6\r\n????.#...#... 4,1,1\r\n????.######..#####. 1,6,5\r\n?###???????? 3,2,1\r\n"
         => Some(21)
-        => None
+        => Some(525152)
 }
