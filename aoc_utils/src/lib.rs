@@ -1,4 +1,5 @@
 pub mod pathfinding;
+pub mod pointer;
 
 pub fn is_flag(flag: &str) -> bool {
     std::env::args().any(|arg| arg.as_str() == flag)
