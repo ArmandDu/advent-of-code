@@ -13,12 +13,22 @@ struct Almanac {
 }
 
 impl Almanac {
-    fn get_seed_position(&self, seed: i64) -> i64 {
+    fn get_position(&self, seed: i64) -> i64 {
         self.maps.iter().fold(seed, |position, ranges| {
             ranges
                 .iter()
                 .find(|(_, source, range)| position >= *source && position < source + range)
                 .map(|(dest, source, _)| (dest - source) + position)
+                .unwrap_or(position)
+        })
+    }
+
+    fn get_seed(&self, position: i64) -> i64 {
+        self.maps.iter().rev().fold(position, |position, ranges| {
+            ranges
+                .iter()
+                .find(|(dest, _, range)| position >= *dest && position < dest + range)
+                .map(|(dest, source, _)| (source - dest) + position)
                 .unwrap_or(position)
         })
     }
@@ -72,18 +82,26 @@ impl Solution for Day05 {
         input
             .seeds
             .iter()
-            .map(|&seed| input.get_seed_position(seed))
+            .map(|&seed| input.get_position(seed))
             .min()
     }
 
-    fn part2(_input: &Self::Input) -> Option<Self::P2> {
-        None
+    fn part2(input: &Self::Input) -> Option<Self::P2> {
+        (0_i64..).find(|&position| {
+            let target = input.get_seed(position);
+
+            input
+                .seeds
+                .iter()
+                .zip(&input.seeds[1..])
+                .step_by(2)
+                .any(|(seed, range)| seed <= &target && target < seed + range)
+        })
     }
 }
 
-fn main() {
-    aoc::solution!(Day05)
-}
+aoc::run!(Day05);
+
 #[cfg(test)]
 mod tests {
     use crate::Day05 as day_05;
