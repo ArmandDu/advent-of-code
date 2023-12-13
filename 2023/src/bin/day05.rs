@@ -13,24 +13,41 @@ struct Almanac {
 }
 
 impl Almanac {
-    fn get_position(&self, seed: i64) -> i64 {
-        self.maps.iter().fold(seed, |position, ranges| {
-            ranges
-                .iter()
-                .find(|(_, source, range)| position >= *source && position < source + range)
-                .map(|(dest, source, _)| (dest - source) + position)
-                .unwrap_or(position)
-        })
-    }
+    fn solve(&self, origin: &[(i64, i64)]) -> Vec<(i64, i64)> {
+        self.maps
+            .iter()
+            .fold(origin.to_owned(), |mut seeds, ranges| {
+                let mut result = vec![];
 
-    fn get_seed(&self, position: i64) -> i64 {
-        self.maps.iter().rev().fold(position, |position, ranges| {
-            ranges
-                .iter()
-                .find(|(dest, _, range)| position >= *dest && position < dest + range)
-                .map(|(dest, source, _)| (source - dest) + position)
-                .unwrap_or(position)
-        })
+                while let Some((seed_start, end)) = seeds.pop() {
+                    if let Some((overlap_range, offset)) =
+                        ranges.iter().find_map(|(dest, src, size)| {
+                            let start = seed_start.max(*src);
+                            let end = end.min(src + size);
+
+                            (start < end).then_some(((start, end), dest - src))
+                        })
+                    {
+                        let (overlap_start, overlap_end) = overlap_range;
+
+                        result.push((overlap_start + offset, overlap_end + offset));
+
+                        //check for unmapped ranges
+                        {
+                            if overlap_start > seed_start {
+                                seeds.push((seed_start, overlap_start));
+                            }
+
+                            if end > overlap_end {
+                                seeds.push((overlap_end, end));
+                            }
+                        }
+                    } else {
+                        result.push((seed_start, end));
+                    }
+                }
+                result
+            })
     }
 }
 
@@ -80,23 +97,33 @@ impl Solution for Day05 {
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
         input
-            .seeds
-            .iter()
-            .map(|&seed| input.get_position(seed))
+            .solve(
+                &input
+                    .seeds
+                    .iter()
+                    .map(|start| (*start, *start + 1))
+                    .collect_vec(),
+            )
+            .into_iter()
+            .sorted()
             .min()
+            .map(|(start, _)| start)
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        (0_i64..).find(|&position| {
-            let target = input.get_seed(position);
-
-            input
-                .seeds
-                .iter()
-                .zip(&input.seeds[1..])
-                .step_by(2)
-                .any(|(seed, range)| seed <= &target && target < seed + range)
-        })
+        input
+            .solve(
+                &input
+                    .seeds
+                    .iter()
+                    .tuples()
+                    .map(|(start, size)| (*start, start + size))
+                    .collect_vec(),
+            )
+            .into_iter()
+            .sorted()
+            .min()
+            .map(|(start, _)| start)
     }
 }
 
