@@ -1,95 +1,67 @@
 use aoc::Solution;
 use itertools::Itertools;
-use regex::Regex;
 
-enum Code {
-    Digit(u32),
-    Word(u32),
-}
-
-impl TryFrom<&str> for Code {
-    type Error = ();
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value {
-            "one" => Ok(Code::Word(1)),
-            "two" => Ok(Code::Word(2)),
-            "three" => Ok(Code::Word(3)),
-            "four" => Ok(Code::Word(4)),
-            "five" => Ok(Code::Word(5)),
-            "six" => Ok(Code::Word(6)),
-            "seven" => Ok(Code::Word(7)),
-            "eight" => Ok(Code::Word(8)),
-            "nine" => Ok(Code::Word(9)),
-            token => token.parse().map(Code::Digit).map_err(|_| ()),
-        }
+macro_rules! s {
+    ($( $e:expr)+ ) => {
+        [$( stringify!($e), )+].iter().enumerate().map(|(i, c)| (c.to_owned(), i % 10)).collect()
     }
 }
 
 struct Day01;
 
 impl Day01 {
-    fn list_to_number(list: Vec<&u32>) -> Option<u32> {
+    fn list_to_number(list: &[usize]) -> Option<usize> {
         let first = list.first().map(|&x| x * 10)?;
 
         list.last().map(|&last| first + last)
+    }
+
+    fn solve(input: &str, mapping: &[(&str, usize)]) -> Option<usize> {
+        let (_, first) = (0..input.len())
+            .map(|offset| &input[offset..])
+            .find_map(|input| mapping.iter().find(|(key, _)| input.starts_with(key)))?;
+
+        let (_, last) = (0..=input.len())
+            .rev()
+            .map(|offset| &input[0..offset])
+            .find_map(|input| mapping.iter().find(|(key, _)| input.ends_with(key)))?;
+
+        Some(first * 10 + last)
     }
 }
 
 impl Solution for Day01 {
     const TITLE: &'static str = "Trebuchet?!";
     const DAY: u8 = 1;
-    type Input = Vec<Vec<Code>>;
-    type P1 = u32;
-    type P2 = u32;
+    type Input = Vec<String>;
+    type P1 = usize;
+    type P2 = usize;
 
     fn parse(input: &str) -> aoc::solution::Result<Self::Input> {
-        let re = Regex::new(r"([0-9]|one|two|three|four|five|six|seven|eight|nine)").unwrap();
-
-        let list = input
-            .lines()
-            .map(|line| {
-                re.captures_iter(line)
-                    .filter_map(|captures| Code::try_from(captures.extract::<1>().0).ok())
-                    .collect_vec()
-            })
-            .collect();
-
-        Ok(list)
+        Ok(input.lines().map(|line| line.to_owned()).collect())
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        Some(
-            input
-                .iter()
-                .map(|list| {
-                    list.iter()
-                        .filter_map(|code| match code {
-                            Code::Digit(x) => Some(x),
-                            _ => None,
-                        })
-                        .collect::<Vec<_>>()
-                })
-                .filter_map(Day01::list_to_number)
-                .sum(),
-        )
+        input
+            .iter()
+            .map(|input| {
+                input
+                    .chars()
+                    .filter_map(|c| c.to_digit(10).map(|n| n as usize))
+                    .collect_vec()
+            })
+            .filter_map(|input| Day01::list_to_number(&input))
+            .sum1()
     }
 
     fn part2(input: &Self::Input) -> Option<Self::P2> {
-        Some(
-            input
-                .iter()
-                .map(|list| {
-                    list.iter()
-                        .map(|code| match code {
-                            Code::Digit(x) => x,
-                            Code::Word(x) => x,
-                        })
-                        .collect_vec()
-                })
-                .filter_map(Day01::list_to_number)
-                .sum(),
-        )
+        let mapping: Vec<_> =
+            s! { zero one two three four five six seven eight nine 0 1 2 3 4 5 6 7 8 9 };
+
+        input
+            .iter()
+            .filter_map(|input| Day01::solve(input, &mapping))
+            .sum1()
     }
 }
 
