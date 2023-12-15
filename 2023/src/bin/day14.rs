@@ -94,8 +94,32 @@ impl Solution for Day14 {
         Some(platform.load())
     }
 
-    fn part2(_input: &Self::Input) -> Option<Self::P2> {
-        None
+    fn part2(input: &Self::Input) -> Option<Self::P2> {
+        const CYCLES: usize = 1_000_000_000;
+        let mut loads = vec![];
+        let mut platform = input.to_owned();
+
+        (0..).find_map(|_| {
+            for tilt in ['N', 'W', 'S', 'E'] {
+                platform.tilt(tilt);
+            }
+
+            loads.push(platform.load());
+
+            for size in 35..loads.len() / 2 {
+                let left = loads.iter().rev().take(size);
+                let right = loads.iter().rev().skip(size).take(size);
+
+                if left.zip(right).all(|(l, r)| l == r) {
+                    let offset = loads.len() - 2 * size;
+
+                    let target = (CYCLES - offset) % size + offset - 1;
+                    return Some(loads[target]);
+                }
+            }
+
+            None
+        })
     }
 }
 
@@ -105,5 +129,5 @@ aoc::example! {
     [Day14]
     simple: "O....#....\r\nO.OO#....#\r\n.....##...\r\nOO.#O....O\r\n.O.....O#.\r\nO.#..O.#.#\r\n..O..#O..O\r\n.......O..\r\n#....###..\r\n#OO..#....\r\n"
         => Some(136)
-        => None
+        => Some(64)
 }
