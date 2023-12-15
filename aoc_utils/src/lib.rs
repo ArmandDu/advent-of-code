@@ -1,3 +1,4 @@
+pub mod collections;
 pub mod pathfinding;
 pub mod pointer;
 
