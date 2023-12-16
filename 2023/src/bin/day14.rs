@@ -1,68 +1,72 @@
 use aoc::solution::SolutionError;
 use aoc::Solution;
-use aoc_utils::collections::Matrix;
 use itertools::Itertools;
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 struct Day14;
 
 #[derive(Debug, Clone)]
-struct Platform(Matrix<char>);
+struct Platform(Vec<Vec<char>>);
 impl Display for Platform {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Display::fmt(&self.0, f)
+        write!(
+            f,
+            "{}",
+            self.0.iter().map(|row| row.iter().join(" ")).join("\n")
+        )
     }
 }
 
 impl Platform {
-    fn new(maze: Matrix<char>) -> Self {
+    fn new(maze: Vec<Vec<char>>) -> Self {
         Self(maze)
     }
 
+    fn flip(&mut self) {
+        let width = self.0.first().map(|r| r.len()).unwrap_or_default();
+        let height = self.0.len();
+
+        self.0 = (0..height)
+            .map(|y| (0..width).map(|x| self.0[x][y]).collect())
+            .collect();
+    }
+
     fn tilt(&mut self, dir: char) {
-        let (from, to) = match dir {
-            'N' | 'W' => (".O", "O."),
-            _ => ("O.", ".O"),
-        };
+        match dir {
+            'N' | 'S' => self.flip(),
+            _ => {}
+        }
 
-        let rows: Vec<(usize, String)> = match dir {
-            'N' | 'S' => self
-                .0
-                .iter_col()
-                .map(|(x, col)| (x, col.map(|(_, c)| c).join("")))
-                .collect_vec(),
-            _ => self
-                .0
-                .iter_row()
-                .map(|(y, col)| (y, col.map(|(_, c)| c).join("")))
-                .collect_vec(),
-        };
+        self.0.iter_mut().for_each(|row| {
+            const WALL: char = '#';
+            let str: String = row.iter().collect();
 
-        rows.into_iter().for_each(|(y, mut row)| {
-            while row.contains(from) {
-                row = row.replace(from, to);
-            }
-
-            row.chars().enumerate().for_each(|(x, new)| {
-                let (x, y) = match dir {
-                    'N' | 'S' => (y, x),
-                    _ => (x, y),
-                };
-
-                if let Some(origin) = self.0.get_mut(&(x, y)) {
-                    *origin = new;
-                }
-            });
+            *row = itertools::intersperse(
+                str.split(WALL).map(|c| match dir {
+                    'N' | 'W' => c.chars().sorted().rev().collect_vec(),
+                    _ => c.chars().sorted().collect_vec(),
+                }),
+                vec![WALL],
+            )
+            .flatten()
+            .collect()
         });
+
+        match dir {
+            'N' | 'S' => self.flip(),
+            _ => {}
+        }
     }
 
     fn load(&self) -> usize {
-        let height = self.0.height();
+        let height = self.0.len();
 
         self.0
             .iter()
-            .map(|((_, y), c)| if c == &'O' { height - y } else { 0 })
+            .enumerate()
+            .map(|(y, row)| (height - y) * row.iter().filter(|c| c == &&'O').count())
             .sum()
     }
 }
@@ -71,7 +75,9 @@ impl FromStr for Platform {
     type Err = SolutionError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        Ok(Platform::new(input.into()))
+        Ok(Platform::new(
+            input.lines().map(|line| line.chars().collect()).collect(),
+        ))
     }
 }
 
@@ -98,24 +104,20 @@ impl Solution for Day14 {
         const CYCLES: usize = 1_000_000_000;
         let mut loads = vec![];
         let mut platform = input.to_owned();
+        let mut cache = HashMap::new();
 
-        (0..).find_map(|_| {
+        (0..).find_map(|cycle| {
             for tilt in ['N', 'W', 'S', 'E'] {
                 platform.tilt(tilt);
             }
 
             loads.push(platform.load());
 
-            for size in 35..loads.len() / 2 {
-                let left = loads.iter().rev().take(size);
-                let right = loads.iter().rev().skip(size).take(size);
+            if let Some(offset) = cache.insert(platform.to_string(), cycle) {
+                let size = cycle - offset;
+                let target = (CYCLES - offset) % size + offset - 1;
 
-                if left.zip(right).all(|(l, r)| l == r) {
-                    let offset = loads.len() - 2 * size;
-
-                    let target = (CYCLES - offset) % size + offset - 1;
-                    return Some(loads[target]);
-                }
+                return Some(loads[target]);
             }
 
             None
