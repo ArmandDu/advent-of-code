@@ -16,7 +16,7 @@ fn hash(input: &str) -> u16 {
 }
 
 impl Solution for Day15 {
-    const TITLE: &'static str = "";
+    const TITLE: &'static str = "Lens Library";
     const DAY: u8 = 15;
     type Input = Vec<String>;
     type P1 = usize;
