@@ -1,6 +1,7 @@
 use aoc::solution::SolutionError;
 use aoc::Solution;
 use aoc_utils::pathfinding::Graph;
+use std::env::args;
 use std::str::FromStr;
 
 struct Day17;
@@ -8,8 +9,13 @@ struct Day17;
 struct Crucible(i8, i8);
 
 struct City(Vec<Vec<u32>>);
+type Path = Vec<((usize, usize), (isize, isize), i8)>;
 
 struct Maze<'a>(&'a City, Crucible);
+
+fn print() -> bool {
+    args().any(|arg| arg.contains("--print"))
+}
 
 impl Maze<'_> {
     fn min_blocks(&self) -> i8 {
@@ -33,7 +39,30 @@ impl Maze<'_> {
     }
 
     fn solve(&self) -> Option<i32> {
-        aoc_utils::pathfinding::dijkstra::solve(self, self.get_cost_fn()).map(|(count, _)| count)
+        let (c, get_path) = aoc_utils::pathfinding::dijkstra::solve(self, self.get_cost_fn())?;
+
+        print().then(|| {
+            if let Some(path) = get_path() {
+                self.print(&path);
+            }
+        });
+
+        Some(c)
+    }
+
+    fn print(&self, hist: &Path) {
+        for (y, row) in self.0 .0.iter().enumerate() {
+            for (x, tile) in row.iter().enumerate() {
+                let in_path = hist.iter().any(|(coord, _, _)| coord == &(x, y));
+
+                match in_path {
+                    true => print!("\x1b[92m{tile}\x1b[0m"),
+                    _ => print!("{tile}"),
+                };
+            }
+            println!();
+        }
+        println!();
     }
 }
 
@@ -96,9 +125,9 @@ impl Graph<((usize, usize), (isize, isize), i8)> for Maze<'_> {
     }
 
     fn is_target(&self, node: &((usize, usize), (isize, isize), i8)) -> bool {
-        let ((x, y), _, _) = node;
+        let ((x, y), _, count) = node;
 
-        *x == self.0.width() - 1 && *y == self.0.height() - 1
+        *x == self.0.width() - 1 && *y == self.0.height() - 1 && *count > self.min_blocks()
     }
 }
 
