@@ -2,7 +2,13 @@ use aoc::solution::SolutionError;
 use aoc::Solution;
 use itertools::Itertools;
 use std::collections::{HashSet, VecDeque};
+use std::env::args;
+use std::ops::Range;
 use std::str::FromStr;
+
+fn print() -> bool {
+    args().any(|c| c.contains("--print"))
+}
 
 struct Day18;
 
@@ -16,24 +22,48 @@ impl DigInstruction {
 }
 
 #[derive(Debug, Default)]
-struct DigSite(HashSet<(isize, isize)>);
+struct DigSite {
+    borders: HashSet<(isize, isize)>,
+    range_x: (isize, isize),
+    range_y: (isize, isize),
+}
 
 impl DigSite {
     fn new(instructions: &[(String, usize)]) -> Self {
-        let mut dig = Self::default();
+        let borders = Self::dig(instructions);
 
-        dig.dig(instructions);
-
-        dig
+        Self {
+            range_x: borders
+                .iter()
+                .map(|(x, _)| *x)
+                .minmax()
+                .into_option()
+                .map(|(x0, x1)| (x0 - 1, x1 + 1))
+                .unwrap_or_default(),
+            range_y: borders
+                .iter()
+                .map(|(_, y)| *y)
+                .minmax()
+                .into_option()
+                .map(|(y0, y1)| (y0 - 1, y1 + 1))
+                .unwrap_or_default(),
+            borders,
+        }
     }
 
-    fn width(&self) -> isize {
-        self.0.iter().map(|(x, _)| x + 1).max().unwrap_or_default()
+    fn range_y(&self) -> Range<isize> {
+        let (start, end) = self.range_y;
+
+        start..end
     }
-    fn height(&self) -> isize {
-        self.0.iter().map(|(_, y)| y + 1).max().unwrap_or_default()
+    fn range_x(&self) -> Range<isize> {
+        let (start, end) = self.range_x;
+
+        start..end
     }
-    fn dig(&mut self, instructions: &[(String, usize)]) {
+
+    fn dig(instructions: &[(String, usize)]) -> HashSet<(isize, isize)> {
+        let mut area = HashSet::new();
         let mut pos = (0_isize, 0_isize);
 
         for (dir, size) in instructions {
@@ -47,27 +77,26 @@ impl DigSite {
 
             for _ in 0..*size {
                 pos = (pos.0 + dx, pos.1 + dy);
-                self.0.insert(pos);
+                area.insert(pos);
             }
         }
+        area
     }
 
     fn border_size(&self) -> usize {
-        self.0.len()
+        self.borders.len()
     }
 
     fn pool(&self) -> Option<HashSet<(isize, isize)>> {
-        let height = self.height();
-
-        let start = (0..height).find_map(|y| {
+        let start = self.range_y().find_map(|y| {
             let x = self
-                .0
+                .borders
                 .iter()
                 .filter_map(|(kx, ky)| (ky == &y).then_some(kx))
                 .min()?
                 + 1;
 
-            (!self.0.contains(&(x, y))).then_some((x, y))
+            (!self.borders.contains(&(x, y))).then_some((x, y))
         })?;
 
         let mut history = HashSet::new();
@@ -76,7 +105,7 @@ impl DigSite {
         queue.push_front(start);
 
         while let Some(current) = queue.pop_front() {
-            if self.0.contains(&current) {
+            if self.borders.contains(&current) {
                 continue;
             }
 
@@ -94,16 +123,12 @@ impl DigSite {
         Some(history)
     }
 
-    #[allow(dead_code)]
     fn print(&self, pool: &HashSet<(isize, isize)>) {
-        let width = self.width();
-        let height = self.height();
-
-        for y in 0..height {
-            for x in 0..width {
+        for y in self.range_y() {
+            for x in self.range_x() {
                 match pool.contains(&(x, y)) {
                     true => print!("o"),
-                    _ => match self.0.get(&(x, y)) {
+                    _ => match self.borders.get(&(x, y)) {
                         Some(_) => print!("#"),
                         _ => print!("."),
                     },
@@ -149,7 +174,9 @@ impl Solution for Day18 {
         let pool = dig_site.pool()?;
         let size = dig_site.border_size();
 
-        // dig_site.print(&pool);
+        if print() {
+            dig_site.print(&pool);
+        }
 
         Some(pool.len() + size)
     }
