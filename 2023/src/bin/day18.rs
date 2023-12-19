@@ -1,7 +1,7 @@
 use aoc::solution::SolutionError;
 use aoc::Solution;
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 use std::str::FromStr;
 
 struct Day18;
@@ -9,11 +9,17 @@ struct Day18;
 #[derive(Debug)]
 struct DigInstruction(String, usize, String);
 
+impl DigInstruction {
+    fn part1(&self) -> (String, usize) {
+        (self.0.to_owned(), self.1)
+    }
+}
+
 #[derive(Debug, Default)]
-struct DigSite(HashMap<(isize, isize), String>);
+struct DigSite(HashSet<(isize, isize)>);
 
 impl DigSite {
-    fn new(instructions: &[DigInstruction]) -> Self {
+    fn new(instructions: &[(String, usize)]) -> Self {
         let mut dig = Self::default();
 
         dig.dig(instructions);
@@ -22,15 +28,15 @@ impl DigSite {
     }
 
     fn width(&self) -> isize {
-        self.0.keys().map(|(x, _)| x + 1).max().unwrap_or_default()
+        self.0.iter().map(|(x, _)| x + 1).max().unwrap_or_default()
     }
     fn height(&self) -> isize {
-        self.0.keys().map(|(_, y)| y + 1).max().unwrap_or_default()
+        self.0.iter().map(|(_, y)| y + 1).max().unwrap_or_default()
     }
-    fn dig(&mut self, instructions: &[DigInstruction]) {
+    fn dig(&mut self, instructions: &[(String, usize)]) {
         let mut pos = (0_isize, 0_isize);
 
-        for DigInstruction(dir, size, color) in instructions {
+        for (dir, size) in instructions {
             let (dx, dy) = match &dir[..] {
                 "D" => (0, 1),
                 "U" => (0, -1),
@@ -41,7 +47,7 @@ impl DigSite {
 
             for _ in 0..*size {
                 pos = (pos.0 + dx, pos.1 + dy);
-                self.0.entry(pos).or_insert(color.to_string());
+                self.0.insert(pos);
             }
         }
     }
@@ -56,12 +62,12 @@ impl DigSite {
         let start = (0..height).find_map(|y| {
             let x = self
                 .0
-                .keys()
+                .iter()
                 .filter_map(|(kx, ky)| (ky == &y).then_some(kx))
                 .min()?
                 + 1;
 
-            (!self.0.contains_key(&(x, y))).then_some((x, y))
+            (!self.0.contains(&(x, y))).then_some((x, y))
         })?;
 
         let mut history = HashSet::new();
@@ -70,7 +76,7 @@ impl DigSite {
         queue.push_front(start);
 
         while let Some(current) = queue.pop_front() {
-            if self.0.contains_key(&current) {
+            if self.0.contains(&current) {
                 continue;
             }
 
@@ -88,6 +94,7 @@ impl DigSite {
         Some(history)
     }
 
+    #[allow(dead_code)]
     fn print(&self, pool: &HashSet<(isize, isize)>) {
         let width = self.width();
         let height = self.height();
@@ -138,11 +145,11 @@ impl Solution for Day18 {
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        let dig_site = DigSite::new(input);
+        let dig_site = DigSite::new(&input.iter().map(|inst| inst.part1()).collect_vec());
         let pool = dig_site.pool()?;
         let size = dig_site.border_size();
 
-        dig_site.print(&pool);
+        // dig_site.print(&pool);
 
         Some(pool.len() + size)
     }
