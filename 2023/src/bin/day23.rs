@@ -1,18 +1,20 @@
-use std::collections::{BinaryHeap, HashMap};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::str::FromStr;
 
 use aoc::solution::SolutionError;
 use aoc::Solution;
-use itertools::Itertools;
 
+use aoc_utils::is_flag;
 use aoc_utils::pathfinding::Graph;
+
+type Coord = (usize, usize);
 
 struct Trail(Vec<Vec<char>>);
 
-struct Hike<'a>(&'a Trail, HashMap<char, Vec<(isize, isize)>>);
+struct Hike(Coord, Coord, HashMap<Coord, HashMap<Coord, usize>>);
 
 impl Trail {
-    fn get(&self, coord: &(usize, usize)) -> Option<&char> {
+    fn get(&self, coord: &Coord) -> Option<&char> {
         self.0.get(coord.1)?.get(coord.0)
     }
 
@@ -23,81 +25,86 @@ impl Trail {
     fn width(&self) -> usize {
         self.0.first().map(|row| row.len()).unwrap_or_default()
     }
-}
 
-impl Graph<((usize, usize), (isize, isize))> for Hike<'_> {
-    fn start(&self) -> Option<((usize, usize), (isize, isize))> {
-        Some(((1, 0), (0, 1))).filter(|(coord, _)| self.0.get(coord) == Some(&'.'))
-    }
-
-    fn adjacent(
-        &self,
-        (node, dir): &((usize, usize), (isize, isize)),
-    ) -> Option<Vec<((usize, usize), (isize, isize))>> {
-        self.0
-            .get(node)
-            .map(|tile| {
-                self.1
-                    .get(tile)
-                    .cloned()
-                    .unwrap_or(vec![(1, 0), (-1, 0), (0, -1), (0, 1)])
+    fn adjacent(&self, current: &Coord, deltas: &[(isize, isize)]) -> Vec<(usize, usize)> {
+        deltas
+            .iter()
+            .cloned()
+            .filter_map(|(dx, dy)| {
+                Some((
+                    current.0.checked_add_signed(dx)?,
+                    current.1.checked_add_signed(dy)?,
+                ))
             })
-            .map(|deltas| {
-                deltas
-                    .into_iter()
-                    .filter(|next_dir| next_dir != &(-dir.0, -dir.1))
-                    .filter_map(|(dx, dy)| {
-                        Some((
-                            (
-                                node.0.checked_add_signed(dx)?,
-                                node.1.checked_add_signed(dy)?,
-                            ),
-                            (dx, dy),
-                        ))
-                    })
-                    .filter(|(next, _)| self.0.get(next) != Some(&'#'))
-                    .collect_vec()
-            })
-    }
-
-    fn is_target(&self, (node, _): &((usize, usize), (isize, isize))) -> bool {
-        node == &(self.0.width() - 2, self.0.height() - 1)
+            .filter(|(x, y)| *x < self.width() && *y < self.height())
+            .filter(|next| self.get(next) != Some(&'#'))
+            .collect()
     }
 }
 
-impl Hike<'_> {
-    fn solve_longest(&self) -> Option<usize> {
-        let start = self.start()?;
+impl Hike {
+    fn new(trail: &Trail, dirs: HashMap<char, Vec<(isize, isize)>>) -> Self {
+        const ALL_DIRS: [(isize, isize); 4] = [(1, 0), (-1, 0), (0, -1), (0, 1)];
+        let start = (1, 0);
+        let target = (trail.width() - 2, trail.height() - 1);
 
-        let mut queue = BinaryHeap::new();
-        let mut costs = HashMap::new();
+        let nodes = {
+            let mut intersections = vec![start, target];
 
-        queue.push((0, start));
-        costs.insert(start, 0_usize);
-
-        let mut results = vec![];
-
-        while let Some((cost, current)) = queue.pop() {
-            if self.is_target(&current) {
-                results.push(cost);
-                continue;
+            for (y, row) in trail.0.iter().enumerate() {
+                for (x, tile) in row.iter().enumerate() {
+                    if tile != &'#' && trail.adjacent(&(x, y), &ALL_DIRS).len() > 2 {
+                        intersections.push((x, y));
+                    }
+                }
             }
 
-            if &cost < costs.get(&current).unwrap_or(&0) {
-                continue;
-            }
+            intersections
+        };
 
-            for next in self.adjacent(&current)? {
-                let next_cost = cost + 1;
+        let mut graph: HashMap<_, HashMap<_, _>> = HashMap::new();
 
-                if &next_cost > costs.get(&next).unwrap_or(&0) {
-                    costs.insert(next, next_cost);
-                    queue.push((next_cost, next));
+        for node in nodes.iter() {
+            let node = *node;
+            let mut queue = VecDeque::new();
+            let mut visited = HashSet::new();
+
+            queue.push_back((node, 0));
+            visited.insert(node);
+
+            while let Some((current, dist)) = queue.pop_front() {
+                if dist > 0 && nodes.contains(&current) {
+                    *graph.entry(node).or_default().entry(current).or_default() = dist;
+                    continue;
+                }
+
+                let tile = trail.get(&current).unwrap_or(&'.');
+
+                for next in trail.adjacent(&current, dirs.get(tile).unwrap_or(&ALL_DIRS.to_vec())) {
+                    if visited.insert(next) {
+                        queue.push_back((next, dist + 1))
+                    }
                 }
             }
         }
 
-        results.iter().cloned().max()
+        Self(start, target, graph)
+    }
+}
+
+impl Graph<Coord> for Hike {
+    fn start(&self) -> Option<Coord> {
+        Some(self.0)
+    }
+
+    fn adjacent(&self, current: &Coord) -> Option<Vec<Coord>> {
+        self.2
+            .get(current)
+            .map(|children| children.keys().cloned().collect())
+    }
+
+    fn is_target(&self, node: &Coord) -> bool {
+        &self.1 == node
     }
 }
 
@@ -108,6 +115,60 @@ impl FromStr for Trail {
         Ok(Trail(
             s.lines().map(|line| line.chars().collect()).collect(),
         ))
+    }
+}
+
+impl Hike {
+    fn longest_path(&self) -> Option<usize> {
+        let start = self.0;
+        let end = self.1;
+        let graph = &self.2;
+
+        let mut queue = vec![(start, 0, HashSet::new())];
+        let mut distances = vec![];
+
+        while let Some((current, dist, visited)) = queue.pop() {
+            if current == end {
+                distances.push(dist);
+                continue;
+            }
+
+            if let Some(nodes) = graph.get(&current) {
+                let mut next_visited = visited.to_owned();
+
+                next_visited.insert(current);
+                for (next, cost) in nodes {
+                    if !visited.contains(next) {
+                        queue.push((*next, dist + cost, next_visited.to_owned()))
+                    }
+                }
+            }
+        }
+
+        distances.into_iter().max()
+    }
+}
+
+mod vis {
+    use crate::{Hike, Trail};
+
+    impl Hike {
+        pub fn dbg(&self, trail: &Trail) {
+            for (y, row) in trail.0.iter().enumerate() {
+                for (x, tile) in row.iter().enumerate() {
+                    if self.2.contains_key(&(x, y)) {
+                        print!(" X ");
+                    } else {
+                        match tile {
+                            '.' => print!("   "),
+                            '#' => print!("███"),
+                            t => print!(" {t} "),
+                        }
+                    }
+                }
+                println!(" {y}")
+            }
+        }
     }
 }
 
@@ -125,7 +186,7 @@ impl Solution for Day23 {
     }
 
     fn part1(input: &Self::Input) -> Option<Self::P1> {
-        let slopes = [
+        let slopes: HashMap<_, _> = [
             ('>', vec![(1, 0)]),
             ('<', vec![(-1, 0)]),
             ('^', vec![(0, -1)]),
@@ -133,13 +194,20 @@ impl Solution for Day23 {
         ]
         .into_iter()
         .collect();
-        let hike = Hike(input, slopes);
 
-        hike.solve_longest()
+        let hike = Hike::new(input, slopes.to_owned());
+
+        is_flag("--print").then(|| {
+            hike.dbg(input);
+        });
+
+        hike.longest_path()
     }
 
-    fn part2(_input: &Self::Input) -> Option<Self::P2> {
-        None
+    fn part2(input: &Self::Input) -> Option<Self::P2> {
+        let hike = Hike::new(input, Default::default());
+
+        hike.longest_path()
     }
 }
 
@@ -149,5 +217,5 @@ aoc::example! {
     [Day23]
     sample: "#.#####################\r\n#.......#########...###\r\n#######.#########.#.###\r\n###.....#.>.>.###.#.###\r\n###v#####.#v#.###.#.###\r\n###.>...#.#.#.....#...#\r\n###v###.#.#.#########.#\r\n###...#.#.#.......#...#\r\n#####.#.#.#######.#.###\r\n#.....#.#.#.......#...#\r\n#.#####.#.#.#########v#\r\n#.#...#...#...###...>.#\r\n#.#.#v#######v###.###v#\r\n#...#.>.#...>.>.#.###.#\r\n#####v#.#.###v#.#.###.#\r\n#.....#...#...#.#.#...#\r\n#.#########.###.#.#.###\r\n#...###...#...#...#.###\r\n###.###.#.###v#####v###\r\n#...#...#.#.>.>.#.>.###\r\n#.###.###.#.###.#.#v###\r\n#.....###...###...#...#\r\n#####################.#\r\n"
         => Some(94)
-        => None
+        => Some(154)
 }
