@@ -120,32 +120,39 @@ impl FromStr for Trail {
 
 impl Hike {
     fn longest_path(&self) -> Option<usize> {
-        let start = self.0;
-        let end = self.1;
+        let mut output = Default::default();
+
+        self.solve_dfs(self.0, 0, &mut Default::default(), &mut output);
+
+        output.into_iter().max()
+    }
+
+    fn solve_dfs(
+        &self,
+        current: Coord,
+        cost: usize,
+        history: &mut HashSet<Coord>,
+        distances: &mut Vec<usize>,
+    ) {
+        let target = self.1;
         let graph = &self.2;
 
-        let mut queue = vec![(start, 0, HashSet::new())];
-        let mut distances = vec![];
+        if current == target {
+            distances.push(cost);
+            return;
+        }
 
-        while let Some((current, dist, visited)) = queue.pop() {
-            if current == end {
-                distances.push(dist);
-                continue;
-            }
-
+        if history.insert(current) {
             if let Some(nodes) = graph.get(&current) {
-                let mut next_visited = visited.to_owned();
-
-                next_visited.insert(current);
-                for (next, cost) in nodes {
-                    if !visited.contains(next) {
-                        queue.push((*next, dist + cost, next_visited.to_owned()))
+                for (next, next_cost) in nodes {
+                    if !history.contains(next) {
+                        self.solve_dfs(*next, cost + next_cost, history, distances);
                     }
                 }
             }
-        }
 
-        distances.into_iter().max()
+            history.remove(&current);
+        }
     }
 }
 
@@ -195,7 +202,7 @@ impl Solution for Day23 {
         .into_iter()
         .collect();
 
-        let hike = Hike::new(input, slopes.to_owned());
+        let hike = Hike::new(input, slopes);
 
         is_flag("--print").then(|| {
             hike.dbg(input);
