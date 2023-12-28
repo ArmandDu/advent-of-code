@@ -8,33 +8,43 @@ type Point = (f64, f64, f64);
 type Velocity = (f64, f64, f64);
 
 #[derive(Debug)]
-struct Hail(Point, Velocity);
+struct Hail {
+    point: Point,
+    velocity: Velocity,
+    line: (f64, f64),
+}
 
 impl Hail {
+    fn new((point, velocity): (Point, Velocity)) -> Self {
+        let ((x, y, _), (a, b, _)) = (point, velocity);
+
+        let s = b / a;
+
+        Self {
+            point,
+            velocity,
+            line: (s, y - s * x),
+        }
+    }
+
     fn x(&self) -> f64 {
-        self.0 .0
+        self.point.0
     }
 
     fn y(&self) -> f64 {
-        self.0 .1
+        self.point.1
     }
 
     fn vx(&self) -> f64 {
-        self.1 .0
+        self.velocity.0
     }
     fn vy(&self) -> f64 {
-        self.1 .1
-    }
-
-    fn ax_b(&self) -> (f64, f64) {
-        let Self((x, y, _), (a, b, _)) = self;
-
-        (b / a, y + (x / -a) * b)
+        self.velocity.1
     }
 
     fn intersects(&self, other: &Self) -> Option<(f64, f64)> {
-        let (a, c) = self.ax_b();
-        let (b, d) = other.ax_b();
+        let (a, c) = self.line;
+        let (b, d) = other.line;
 
         if a == b {
             return None;
@@ -70,7 +80,7 @@ impl FromStr for Hail {
             .filter_map(|chunk| chunk.into_iter().collect_tuple())
             .collect_tuple()
             .ok_or(SolutionError::ParseError)
-            .map(|(point, vel)| Hail(point, vel))
+            .map(Hail::new)
     }
 }
 
