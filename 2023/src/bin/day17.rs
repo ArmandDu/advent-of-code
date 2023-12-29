@@ -127,7 +127,7 @@ impl Graph<((usize, usize), (isize, isize), i8)> for Maze<'_> {
     fn is_target(&self, node: &((usize, usize), (isize, isize), i8)) -> bool {
         let ((x, y), _, count) = node;
 
-        *x == self.0.width() - 1 && *y == self.0.height() - 1 && *count > self.min_blocks()
+        *x == self.0.width() - 1 && *y == self.0.height() - 1 && *count >= self.min_blocks()
     }
 }
 
