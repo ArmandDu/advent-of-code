@@ -3,3 +3,7 @@
 *.iml
 
 *.log
+
+## Advent of Code
+inputs/
+target/
