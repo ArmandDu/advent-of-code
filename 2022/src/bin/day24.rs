@@ -49,7 +49,7 @@ mod valley {
                 input.lines().count() - 2,
             );
 
-            let z_size = lcm(x_size, y_size).ok_or(SolutionError::ParseError)?;
+            let z_size = lcm(x_size, y_size);
 
             let valley = (0..z_size)
                 .map(|z| {

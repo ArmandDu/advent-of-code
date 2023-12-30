@@ -1,4 +1,6 @@
+pub mod collections;
 pub mod pathfinding;
+pub mod pointer;
 
 pub fn is_flag(flag: &str) -> bool {
     std::env::args().any(|arg| arg.as_str() == flag)
@@ -20,10 +22,23 @@ pub fn neighbors(width: usize, height: usize, x: usize, y: usize) -> Vec<(usize,
     .collect()
 }
 
-pub fn lcm(x: usize, y: usize) -> Option<usize> {
-    let max = x.max(y);
+pub fn lcm(x: usize, y: usize) -> usize {
+    x * y / gcd(x, y)
+}
 
-    (max..).find(|&max| max % x == 0 && max % y == 0)
+pub fn gcd(x: usize, y: usize) -> usize {
+    let mut min = x.min(y);
+    let mut max = x.max(y);
+
+    loop {
+        let rem = max % min;
+        if rem == 0 {
+            return min;
+        }
+
+        max = min;
+        min = rem;
+    }
 }
 
 pub fn index(value: isize, min: isize, max: isize) -> usize {
